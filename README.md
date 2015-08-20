@@ -1,5 +1,8 @@
 # grid-gwt
-A simple example application where Vaadin Grid is used in a GWT project
+
+
+An example to compare Vaadin Grid with polymer iron-list.
+
 
 Run as
 
@@ -7,4 +10,4 @@ Run as
 
 Demo
 
-http://artur.app.fi/gwt-grid/
+http://manolo.github.io/grid-gwt
