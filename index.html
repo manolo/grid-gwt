@@ -3,12 +3,9 @@
   <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1" />
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
 
-    <title>Web Application Starter Project</title>
-    <script type="text/javascript" language="javascript" src="mygridapp/mygridapp.nocache.js"></script>
-
+    <title>Grid</title>
+    <script src="mygridapp/mygridapp.nocache.js"></script>
 
   <script src="bower_components/webcomponentsjs/webcomponents-lite.js"></script>
 
@@ -65,8 +62,7 @@
               .border {
                 border-bottom: 1px solid #e3e3e3;
               }
-              .one, .two, .three, .four {
-                 width: 25%;
+              .one, .two, .three, .four, .five, .six {
                  overflow: hidden;
                  display: inline-block;
                  white-space: nowrap;
@@ -76,7 +72,10 @@
                  width: 80px;
               }
               .two, .three, .four {
-                 width: 200px;
+                 width: 180px;
+              }
+              .five, .six {
+                 width: 50px;
               }
           </style>
 
@@ -89,6 +88,8 @@
                     <div class='two'>[[item.1]]</div>
                     <div class='three'>[[item.2]]</div>
                     <div class='four'>[[item.3]]</div>
+                    <div class='five'>[[item.4]]</div>
+                    <div class='six'>[[item.5]]</div>
                   </div>
                 </div>
               </div>
@@ -104,7 +105,7 @@
 
             var l = document.querySelector('iron-list');
             var data = [];
-            var cnt = 0;
+            var cnt = 1;
             for (i = 0 ; i < rows ; i++) {
              data.push([cnt++, "John", "Garcia", "Developer", 12, 1]);
              data.push([cnt++, "Emma", "Sesmero", "Engineer", 18, 0]);
@@ -115,6 +116,7 @@
              data.push([cnt++, "Paul", "Vaca", "Ganadero", 56, 66]);
              data.push([cnt++, "Biff", "Eeter", "Drinker", 34, 4]);
              data.push([cnt++, "Leo", "Tron", "Troco", 88, 5]);
+             data.push([cnt++, "Peri", "Co", "Palotes", 22, 37]);
             }
             l.items = data;
           });
