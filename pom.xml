@@ -13,7 +13,7 @@
 
   <properties>
     <gwtVersion>2.7.0</gwtVersion>
-    <vaadin.version>7.4.8</vaadin.version>
+    <vaadin.version>7.5.0</vaadin.version>
 
     <maven.compiler.source>1.7</maven.compiler.source>
     <maven.compiler.target>1.7</maven.compiler.target>
@@ -58,6 +58,12 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
+        <groupId>com.googlecode.gwtquery</groupId>
+        <artifactId>gwtquery</artifactId>
+        <version>1.4.4-SNAPSHOT</version>
+        <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.11</version>
@@ -85,7 +91,7 @@
             </goals>
           </execution>
         </executions>
-        <!-- Plugin configuration. There are many available options, see 
+        <!-- Plugin configuration. There are many available options, see
           gwt-maven-plugin documentation at codehaus.org -->
         <configuration>
           <copyWebapp>true</copyWebapp>
@@ -94,6 +100,28 @@
             <module>org.vaadin.artur.gridgwt.GridApp</module>
           </modules>
         </configuration>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-resources</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/${project.build.finalName}</outputDirectory>
+              <resources>
+                <resource>
+                 <directory>src/main/webapp</directory>
+                 <filtering>true</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
