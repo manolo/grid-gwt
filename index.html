@@ -101,7 +101,7 @@
         <script>
           HTMLImports.whenReady(function(){
             var s = location.search.split('rows=')[1];
-            var rows = (s ? parseInt(s) : 100) / 10;
+            var rows = (s ? parseFloat(s) : 100) / 10;
 
             var l = document.querySelector('iron-list');
             var data = [];
