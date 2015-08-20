@@ -45,9 +45,7 @@ public class MyGrid extends Grid<Person> {
         });
 
         String s = Window.Location.getParameter("rows");
-        int rows = (s == null || s.isEmpty() ? 100 : Integer.parseInt(s)) / 10;
-
-
+        float rows = (s == null || s.isEmpty() ? 100 : Float.parseFloat(s)) / 10;
 
         getColumn(0).setWidth(80);
         getColumn(1).setWidth(200);
