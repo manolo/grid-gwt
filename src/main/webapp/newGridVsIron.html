@@ -1,0 +1,130 @@
+<!doctype html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1" />
+
+    <title>Grid</title>
+    <script src="mygridapp/mygridapp.nocache.js"></script>
+
+  <script src="bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+
+  <link rel="import" href="bower_components/polymer/polymer.html">
+
+  <link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout.html">
+  <link rel="import" href="bower_components/iron-list/iron-list.html">
+  <style>
+    body {
+       font-family: arial;
+       margin: 0px;
+    }
+    .iron-list {
+       width: 760px;
+    }
+    .d1 {
+       position: absolute;
+       width: 100%;
+       height: 100%;
+    }
+    .d2, .d3 {
+       position: absolute;
+       width: 50%;
+       height: 100%;
+    }
+    .d3 {
+       right: 0px;
+    }
+    iron-list, v-grid {
+       height: 100%;
+    }
+  </style>
+
+
+  </head>
+  <body>
+    <div class="d1">
+      <div class="d2">
+        <iron-list id="list">
+          <style>
+              .row, .item {
+                 height: 38px;
+              }
+              .item {
+                 padding-left: 12px;
+                 font-size: 16px;
+              }
+              .row:nth-child(odd) {
+                  background-color: white;
+              }
+              .row:nth-child(even) {
+                  background-color: #f5f5f5;
+              }
+              .border {
+                border-bottom: 1px solid #e3e3e3;
+              }
+              .one, .two, .three, .four, .five, .six {
+                 overflow: hidden;
+                 display: inline-block;
+                 white-space: nowrap;
+                 padding-top: 12px;
+              }
+              .one {
+                 width: 80px;
+              }
+              .two, .three, .four {
+                 width: 180px;
+              }
+              .five, .six {
+                 width: 50px;
+              }
+          </style>
+
+          <template>
+            <div class="row">
+              <div class="item">
+                <div class="pad">
+                  <div>
+                    <div class='one'>[[item.0]]</div>
+                    <div class='two'>[[item.1]]</div>
+                    <div class='three'>[[item.2]]</div>
+                    <div class='four'>[[item.3]]</div>
+                    <div class='five'>[[item.4]]</div>
+                    <div class='six'>[[item.5]]</div>
+                  </div>
+                </div>
+              </div>
+              <div class="border"></div>
+            </div>
+          </template>
+        </iron-list>
+
+        <script>
+          HTMLImports.whenReady(function(){
+            var s = location.search.split('rows=')[1];
+            var rows = (s ? parseFloat(s) : 100) / 10;
+
+            var l = document.querySelector('iron-list');
+            var data = [];
+            var cnt = 1;
+            for (i = 0 ; i < rows ; i++) {
+             data.push([cnt++, "John", "Garcia", "Developer", 12, 1]);
+             data.push([cnt++, "Emma", "Sesmero", "Engineer", 18, 0]);
+             data.push([cnt++, "Jeff", "Harris", "CEO", 44, 1]);
+             data.push([cnt++, "George", "Washington", "President", 78, 3]);
+             data.push([cnt++, "Abraham", "Lincoln", "ExPresident", 114, 5]);
+             data.push([cnt++, "Henrik", "Paul", "Currito", 32, 6]);
+             data.push([cnt++, "Paul", "Vaca", "Ganadero", 56, 66]);
+             data.push([cnt++, "Biff", "Eeter", "Drinker", 34, 4]);
+             data.push([cnt++, "Leo", "Tron", "Troco", 88, 5]);
+             data.push([cnt++, "Peri", "Co", "Palotes", 22, 37]);
+            }
+            l.items = data;
+          });
+        </script>
+      </div>
+      <div class="d3">
+        <div id="grid" class="mytheme"></div>
+      </div>
+    </div>
+  </body>
+</html>
