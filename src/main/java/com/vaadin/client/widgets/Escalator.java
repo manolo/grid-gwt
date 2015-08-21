@@ -15,6 +15,8 @@
  */
 package com.vaadin.client.widgets;
 
+import static com.google.gwt.query.client.GQuery.console;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -396,11 +398,14 @@ public class Escalator extends Widget implements RequiresResize,
             }
             
             private Movement vertical, horizontal;
+            private double start;
+            private int times;
 
             private Animation animation = new Animation() {
                 private double positionY = 0, positionX = 0, offsetY = 0, offsetX = 0, minDelta, maxDelta;
                 private boolean runX, runY;
                 public void onUpdate(double progress) {
+                    times ++;
                     if (runX) {
                         escalator.horizontalScrollbar.setScrollPos(positionX + (offsetX * progress));
                     }
@@ -409,12 +414,20 @@ public class Escalator extends Widget implements RequiresResize,
                     }
                 }
                 public double interpolate(double progress) {
+//                    return 1+(--progress)*progress*progress*progress*progress;
+                    // CIRC
                     return Math.sqrt(1 - (progress - 1) * (progress - 1));
+//                     return -Math.pow(2, -10 * progress) + 1;
+//                    return 2 * progress - progress * progress;
+                    //                    return -(Math.sqrt(1 - progress * progress) - 1);
                 };
                 public void onComplete() {
                     scrollingFinish();
+                    console.log("Animation run at: " + (1000 * times / (Duration.currentTimeMillis() - start)));
                 };
                 public void run(int duration) {
+                    start = Duration.currentTimeMillis();
+                    times = 0;
                     runX = runY = false;
                     minDelta = -escalator.horizontalScrollbar.getScrollPos();
                     maxDelta = escalator.horizontalScrollbar.getScrollSize() - escalator.horizontalScrollbar.getOffsetSize() + minDelta;
@@ -432,7 +445,6 @@ public class Escalator extends Widget implements RequiresResize,
                         positionY = escalator.verticalScrollbar.getScrollPos();
                         runY = true;
                     }
-                    
                     if (runX || runY) {
                         super.run(duration);
                     }

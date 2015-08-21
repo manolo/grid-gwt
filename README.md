@@ -1,8 +1,8 @@
 # grid-gwt
 
 
-An example to compare Vaadin Grid with polymer iron-list.
-
+An example to compare Vaadin Grid with polymer iron-list, 
+and to hack Grid and compare with current one.
 
 Run as
 
