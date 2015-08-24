@@ -376,115 +376,111 @@ public class Escalator extends Widget implements RequiresResize,
             }-*/;
 
 
-            // (ms) duration of the inertial scrolling simulation. Devices with larger screens take
-            // longer durations (phone vs tablet is around 500ms vs 1500ms). This is a fixed value
-            // and does not influence speed and amount of momentum.
-            private static int duration = (int)(Window.getClientHeight() * 1.5);
+            // Duration of the inertial scrolling simulation. Devices with
+            // larger screens take longer durations.
+            private static final int DURATION = (int)(Window.getClientHeight() * 2);
+
             // multiply scroll velocity with repeated touching
             private int acceleration = 1;
-            private boolean touchStarted = false;
+            private boolean touching = false;
+            // Two movement objects for storing status and processing touches
+            private Movement yMov, xMov;
 
+            // The object to deal with one direction scrolling
             private class Movement {
-                private boolean isVertical;
-                private int direction, previous;
-                private double position, offset, velocity, last;
-                private List<Double> speed = new ArrayList<Double>();
-                private ScrollbarBundle scroll;
-                boolean run = false;
+                final double MIN_VEL = 0.4, VEL_MULT = 1024;
+                final List<Double> speeds = new ArrayList<Double>();
+                final ScrollbarBundle scroll;
+                double position, offset, velocity, prevSpeed, prevPos, prevTime, delta;
+                boolean run;
 
                 public Movement(boolean vertical) {
-                    scroll = (isVertical = vertical) ? escalator.verticalScrollbar
+                    scroll = vertical ? escalator.verticalScrollbar
                             : escalator.horizontalScrollbar;
                 }
-
-                public void update(double progress) {
-                    if (run) {
-                        scroll.setScrollPos(position + offset * progress);
-                    }
+                public void startTouch(CustomTouchEvent event) {
+                    speeds.clear();
+                    prevPos = pagePosition(event);
+                    prevTime = Duration.currentTimeMillis();
+                    prevSpeed = 0;
                 }
-
-                public void start(CustomTouchEvent event) {
-                    previous = getPosition(event);
-                    offset = direction = 0;
-                    velocity = 1;
-                    speed.clear();
-                }
-
-                public void init() {
-                    double minDelta = -scroll.getScrollPos();
-                    double maxDelta = scroll.getScrollSize()
-                            - scroll.getOffsetSize() + minDelta;
-                    run = minDelta < 0 && maxDelta > 0;
-                    if (run) {
-                        position = scroll.getScrollPos();
-                        offset = direction * 1200 * velocity * acceleration;
-                        offset = Math.min(Math.max(offset, minDelta), maxDelta);
-                    }
-                }
-
-                public void end() {
-                    int s = speed.size();
-                    velocity = s == 0 ? 0 : s == 1 ? speed.get(s - 1)
-                            : Math.abs(speed.get(s - 1)) > Math.abs(speed
-                                    .get(s - 2)) ? speed.get(s - 1) : speed
-                                    .get(s - 2);
-                    run = velocity > 1;
-                }
-
-                public int getPosition(CustomTouchEvent event) {
-                    JsArray<Touch> arr = event.getNativeEvent().getTouches();
-                    if (arr.length() == 1) {
-                        Touch t = arr.get(0);
-                       return isVertical ? t.getPageY() : t.getPageX();
-                    }
-                    return -1;
-                }
-
-                public void move(CustomTouchEvent event) {
-                    int current = getPosition(event);
-                    if (current >= 0) {
-                        int delta = previous - current;
-                        scroll.setScrollPosByDelta(delta);
+                public void moveTouch(CustomTouchEvent event) {
+                    double pagePosition = pagePosition(event);
+                    if (pagePosition > -1) {
+                        delta = prevPos - pagePosition;
                         double now = Duration.currentTimeMillis();
-                        if (Math.abs(delta) > 10) {
-                            direction = delta < 0 ? -1 : 1;
-                            speed.add(Math.abs(delta / (now - last)));
+                        double ellapsed = Duration.currentTimeMillis() - prevTime;
+                        double speed = delta / ellapsed;
+                        if (validSpeed(speed)) {
+                            speeds.add(speed);
+                        } else if (!validSpeed(prevSpeed)) {
+                            speeds.clear();
                         }
-                        last = now;
-                        previous = current;
+                        prevSpeed = speed;
+                        prevTime = now;
+                        prevPos = pagePosition;
                     }
+                }
+                public void endTouch(CustomTouchEvent event) {
+                    velocity = 0;
+                    for (double d : speeds) {
+                        // Compute average speed.
+                        velocity += d / speeds.size();
+                    }
+                    if (run = validSpeed(velocity)) {
+                        event.getNativeEvent().preventDefault();
+                    }
+                }
+
+                void startAnimation() {
+                    position = scroll.getScrollPos();
+                    offset = VEL_MULT * velocity * acceleration;
+                    double minOff = -scroll.getScrollPos();
+                    double maxOff = scroll.getScrollSize() - scroll.getOffsetSize() + minOff;                    
+                    // don't scroll out of limits
+                    offset = Math.min(Math.max(offset, minOff), maxOff);
+                    run = minOff < 0 && maxOff > 0 && Math.abs(offset) > 1;
+                }
+                void stepAnimation(double progress) {
+                    if (run) {
+                        double delta = offset * progress;
+                        if (Math.abs(delta) > 1) {
+                            scroll.setScrollPos(position + delta);
+                        }
+                    }
+                }
+
+                int pagePosition(CustomTouchEvent event) {
+                    JsArray<Touch> a = event.getNativeEvent().getTouches();
+                    return a.length() != 1 ? -1 : scroll == escalator.verticalScrollbar
+                            ? a.get(0).getPageY() : a.get(0).getPageX();
+                }
+                boolean validSpeed(double speed) {
+                    return Math.abs(speed) > MIN_VEL;
                 }
             }
 
-            private Movement yMov, xMov;
-
+            // Using GWT animations which take care of native animation frames.
             private Animation animation = new Animation() {
-                private double start;
-                private int times;
-
                 public void onUpdate(double progress) {
-                    times++;
-                    xMov.update(progress);
-                    yMov.update(progress);
+                    xMov.stepAnimation(progress);
+                    yMov.stepAnimation(progress);
                 }
-
                 public double interpolate(double progress) {
+                    // easingOutExpo algorithm looks good for kinetic scrolling 
                     return Math.sqrt(1 - (progress - 1) * (progress - 1));
                 };
-
                 public void onComplete() {
-                    scrollingFinish();
-                    console.log("Animation run at: "
-                            + (1000 * times / (Duration.currentTimeMillis() - start)));
+                    touching = false;
+                    escalator.body.domSorter.reschedule();
                 };
-
                 public void run(int duration) {
-                    start = Duration.currentTimeMillis();
-                    times = 0;
-                    xMov.init();
-                    yMov.init();
+                    xMov.startAnimation();
+                    yMov.startAnimation();
                     if (xMov.run || yMov.run) {
                         super.run(duration);
+                    } else {
+                        onComplete();
                     }
                 };
             };
@@ -496,32 +492,23 @@ public class Escalator extends Widget implements RequiresResize,
                         xMov = new Movement(false);
                     }
                     acceleration = animation.isRunning() ? acceleration + 1 : 1;
-                    xMov.start(event);
-                    yMov.start(event);
+                    xMov.startTouch(event);
+                    yMov.startTouch(event);
                     animation.cancel();
-                    touchStarted = true;
+                    touching = true;
                 }
             }
 
             public void touchMove(final CustomTouchEvent event) {
-                yMov.move(event);
-                xMov.move(event);
+                yMov.moveTouch(event);
+                xMov.moveTouch(event);
+                moveScrollFromEvent(escalator, xMov.delta, yMov.delta, event.getNativeEvent());
             }
 
             public void touchEnd(final CustomTouchEvent event) {
-                xMov.end();
-                yMov.end();
-                if (xMov.run || yMov.run) {
-                    event.getNativeEvent().preventDefault();
-                    animation.run(duration);
-                } else {
-                    scrollingFinish();
-                }
-            }
-
-            private void scrollingFinish() {
-                touchStarted = false;
-                escalator.body.domSorter.reschedule();
+                xMov.endTouch(event);
+                yMov.endTouch(event);
+                animation.run(DURATION);
             }
         }
 
@@ -2287,7 +2274,7 @@ public class Escalator extends Widget implements RequiresResize,
             private boolean sortIfConditionsMet() {
                 boolean enoughFramesHavePassed = framesPassed >= REQUIRED_FRAMES_PASSED;
                 boolean enoughTimeHasPassed = (Duration.currentTimeMillis() - startTime) >= SORT_DELAY_MILLIS;
-                boolean notTouchActivity = !scroller.touchHandlerBundle.touchStarted;
+                boolean notTouchActivity = !scroller.touchHandlerBundle.touching;
                 boolean conditionsMet = enoughFramesHavePassed
                         && enoughTimeHasPassed && notTouchActivity;
 
