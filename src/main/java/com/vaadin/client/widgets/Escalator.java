@@ -15,8 +15,6 @@
  */
 package com.vaadin.client.widgets;
 
-import static com.google.gwt.query.client.GQuery.console;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -388,7 +386,7 @@ public class Escalator extends Widget implements RequiresResize,
 
             // The object to deal with one direction scrolling
             private class Movement {
-                final double MIN_VEL = 0.4, VEL_MULT = 1024;
+                final double MIN_VEL = 0.5, VEL_MULT = 1024;
                 final List<Double> speeds = new ArrayList<Double>();
                 final ScrollbarBundle scroll;
                 double position, offset, velocity, prevSpeed, prevPos, prevTime, delta;
