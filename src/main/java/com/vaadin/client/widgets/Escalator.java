@@ -15,8 +15,6 @@
  */
 package com.vaadin.client.widgets;
 
-import static com.google.gwt.query.client.GQuery.console;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
