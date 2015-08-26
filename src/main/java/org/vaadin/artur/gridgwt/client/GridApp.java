@@ -8,7 +8,10 @@ import com.google.gwt.user.client.ui.RootPanel;
 public class GridApp implements EntryPoint {
     @Override
     public void onModuleLoad() {
-        Panel p = RootPanel.get("new_grid");
+        Panel p = RootPanel.get("new_v2");
+        if (p == null) {
+            p = RootPanel.get("new_grid");
+        }
         if (p == null) {
             p = RootPanel.get("grid");
         }
