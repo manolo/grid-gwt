@@ -5,6 +5,8 @@
     <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1" />
 
     <title>Iron Grid</title>
+    <script src="fullscreen.js"></script>
+    
   <script src="bower_components/webcomponentsjs/webcomponents-lite.js"></script>
 
   <link rel="import" href="bower_components/polymer/polymer.html">
@@ -26,6 +28,11 @@
     }
     iron-list {
        height: 100%;
+    }
+    button {
+      position: fixed;
+      top: 5px;
+      right: 5px;
     }
   </style>
 
@@ -86,8 +93,54 @@
             </div>
           </template>
         </iron-list>
+        <button id='b'>Click</button>
 
         <script>
+        function on (element, event, callback, capture) {
+          (element.addEventListener || element.attachEvent).call(element, event, callback, capture);
+          return callback;
+        }
+
+        function off (element, event, callback, capture) {
+          (element.removeEventListener || element.detachEvent).call(element, event, callback, capture);
+          return callback;
+        }
+        
+        function simulate (element) {
+          on(element, 'mousedown', dispatch('touchstart'));
+          on(element, 'mousemove', dispatch('touchmove'));
+          on(element, 'mouseup', dispatch('touchend'));
+        }
+        
+        function dispatch (touchEventType) {
+          return function (event) {
+            var touchEvent;
+
+            try {
+              touchEvent = newTouchEvent({
+                type: touchEventType,
+                event: event
+              });
+            } catch (err) {
+              // failed to create a mouse event just ignore
+              return;
+            }
+
+            touchEvent.changedTouches = touchEvent.touches = [{
+              identifier: Date.now() + Math.random(),
+              clientX: event.clientX,
+              clientY: event.clientY,
+              pageX: event.pageX,
+              pageY: event.pageY,
+              screenX: event.screenX,
+              screenY: event.screenY
+            }];
+
+            event.target.dispatchEvent(touchEvent);
+          };
+        }        
+        
+        
           HTMLImports.whenReady(function(){
             var s = location.search.split('rows=')[1];
             var rows = (s ? parseFloat(s) : 100) / 10;
@@ -108,6 +161,20 @@
              data.push([cnt++, "Peri", "Co", "Palotes", 22, 37]);
             }
             l.items = data;
+            var b = document.querySelector('button');
+            l.addEventListener('touchstart',function(e){
+              console.log(e);
+            })
+            var b = document.querySelector('button');
+            var e = document.createEvent('TouchEvent');
+            
+            simulate(l)
+//             e.initTouchEvent('touchstart'
+//                 true, true, window, 1, screenX, screenY, clientX, clientY,
+//                 ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget
+//             b.addEventListener('')
+//             window.a = this;
+// //             console.log(Polymer.dom(this).querySelector('*'));
           });
         </script>
     </div>
