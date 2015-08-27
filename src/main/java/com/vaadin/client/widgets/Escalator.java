@@ -15,6 +15,8 @@
  */
 package com.vaadin.client.widgets;
 
+import static com.google.gwt.query.client.GQuery.console;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -388,9 +390,10 @@ public class Escalator extends Widget implements RequiresResize,
                 final List<Double> speeds = new ArrayList<Double>();
                 final ScrollbarBundle scroll;
                 double position, offset, velocity, prevPos, prevTime, delta;
-                boolean run;
+                boolean run, vertical;
 
                 public Movement(boolean vertical) {
+                    this.vertical = vertical;
                     scroll = vertical ? escalator.verticalScrollbar : escalator.horizontalScrollbar;
                 }
 
@@ -409,6 +412,7 @@ public class Escalator extends Widget implements RequiresResize,
                         // if last speed was so low, reset speeds and start storing again
                         if (speeds.size() > 0 && !validSpeed(speeds.get(0))) {
                             speeds.clear();
+                            run = true;
                         }
                         speeds.add(0, velocity);
                         prevTime = now;
@@ -435,8 +439,11 @@ public class Escalator extends Widget implements RequiresResize,
                     }
                 }
                 void validate(Movement other) {
-                    // Compare this axis movement with the other one and check if we move it  .
-                    if (other.velocity > 0 && Math.abs(velocity / other.velocity) < MIN_VEL) {
+                    // Compare this axis movement with the other one and check if we move it.
+                    if (!vertical) {
+                        console.log(run, velocity, other.velocity, other.velocity > 0 ? Math.abs(velocity / other.velocity) : -1);
+                    }
+                    if (!run || other.velocity > 0 && Math.abs(velocity / other.velocity) < 1) {
                         delta = offset = 0;
                         run = false;
                     }
@@ -447,8 +454,7 @@ public class Escalator extends Widget implements RequiresResize,
 
                 int pagePosition(CustomTouchEvent event) {
                     JsArray<Touch> a = event.getNativeEvent().getTouches();
-                    return a.length() != 1 ? -1 : scroll == escalator.verticalScrollbar
-                            ? a.get(0).getPageY() : a.get(0).getPageX();
+                    return vertical ? a.get(0).getPageY() : a.get(0).getPageX();
                 }
                 boolean validSpeed(double speed) {
                     return Math.abs(speed) > MIN_VEL;

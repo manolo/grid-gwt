@@ -17,7 +17,7 @@
     
     var setFull = function() {
       if (!fulled && !isFull()) {
-        document.body.addEventListener('mousedown', full);      
+//        document.body.addEventListener('mousedown', full);      
         document.body.addEventListener('touchstart', full);      
         var fulled = true;
       }
