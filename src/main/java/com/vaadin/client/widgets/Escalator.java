@@ -15,8 +15,6 @@
  */
 package com.vaadin.client.widgets;
 
-import static com.google.gwt.query.client.GQuery.console;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -383,10 +381,10 @@ public class Escalator extends Widget implements RequiresResize,
             private boolean touching = false;
             // Two movement objects for storing status and processing touches
             private Movement yMov, xMov;
+            final double MIN_VEL = 0.6, MAX_VEL = 4, F_VEL = 1500, F_ACC = 0.7, F_AXIS = 1;
 
             // The object to deal with one direction scrolling
             private class Movement {
-                final double MIN_VEL = 0.6, MAX_VEL = 4, VEL_MULT = 700;
                 final List<Double> speeds = new ArrayList<Double>();
                 final ScrollbarBundle scroll;
                 double position, offset, velocity, prevPos, prevTime, delta;
@@ -427,7 +425,7 @@ public class Escalator extends Widget implements RequiresResize,
                     }
                     position = scroll.getScrollPos();
                     // Compute offset, and adjust it with an easing curve so as movement is smoother.
-                    offset = VEL_MULT * velocity * acceleration * easingInOutCos(velocity, MAX_VEL);
+                    offset = F_VEL * velocity * acceleration * easingInOutCos(velocity, MAX_VEL);
                     // Check that offset does not over-scroll
                     double minOff = -scroll.getScrollPos();
                     double maxOff = scroll.getScrollSize() - scroll.getOffsetSize() + minOff;
@@ -439,11 +437,7 @@ public class Escalator extends Widget implements RequiresResize,
                     }
                 }
                 void validate(Movement other) {
-                    // Compare this axis movement with the other one and check if we move it.
-                    if (!vertical) {
-                        console.log(run, velocity, other.velocity, other.velocity > 0 ? Math.abs(velocity / other.velocity) : -1);
-                    }
-                    if (!run || other.velocity > 0 && Math.abs(velocity / other.velocity) < 1) {
+                    if (!run || other.velocity > 0 && Math.abs(velocity / other.velocity) < F_AXIS) {
                         delta = offset = 0;
                         run = false;
                     }
@@ -490,7 +484,7 @@ public class Escalator extends Widget implements RequiresResize,
                         xMov = new Movement(false);
                     }
                     if (animation.isRunning()) {
-                        acceleration++;
+                        acceleration += F_ACC;
                         event.getNativeEvent().preventDefault();
                         animation.cancel();
                     } else {
