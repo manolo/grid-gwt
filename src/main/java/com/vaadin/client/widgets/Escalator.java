@@ -376,10 +376,11 @@ public class Escalator extends Widget implements RequiresResize,
             // Duration of the inertial scrolling simulation. Devices with
             // larger screens take longer durations.
             private static final int DURATION = (int)Window.getClientHeight();
-            private int acceleration = 1, currentId = -1;
+            // multiply scroll velocity with repeated touching
+            private int acceleration = 1;
+            private boolean touching = false;
             // Two movement objects for storing status and processing touches
             private Movement yMov, xMov;
-            // Constants, playing with them we could modify behavior
             final double MIN_VEL = 0.6, MAX_VEL = 4, F_VEL = 1500, F_ACC = 0.7, F_AXIS = 1;
 
             // The object to deal with one direction scrolling
@@ -394,12 +395,12 @@ public class Escalator extends Widget implements RequiresResize,
                     scroll = vertical ? escalator.verticalScrollbar : escalator.horizontalScrollbar;
                 }
 
-                public void startTouch(Touch touch) {
+                public void startTouch(CustomTouchEvent event) {
                     speeds.clear();
-                    prevPos = pagePosition(touch);
+                    prevPos = pagePosition(event);
                     prevTime = Duration.currentTimeMillis();
                 }
-                public void moveTouch(Touch event) {
+                public void moveTouch(CustomTouchEvent event) {
                     double pagePosition = pagePosition(event);
                     if (pagePosition > -1) {
                         delta = prevPos - pagePosition;
@@ -416,7 +417,7 @@ public class Escalator extends Widget implements RequiresResize,
                         prevPos = pagePosition;
                     }
                 }
-                public void endTouch(Touch touch) {
+                public void endTouch(CustomTouchEvent event) {
                     // Compute average speed
                     velocity = 0;
                     for (double s : speeds) {
@@ -431,6 +432,9 @@ public class Escalator extends Widget implements RequiresResize,
                     offset = Math.min(Math.max(offset, minOff), maxOff);
                     // Enable or disable inertia movement in this axis
                     run = validSpeed(velocity) && minOff < 0 && maxOff > 0;
+                    if (run) {
+                        event.getNativeEvent().preventDefault();
+                    }
                 }
                 void validate(Movement other) {
                     if (!run || other.velocity > 0 && Math.abs(velocity / other.velocity) < F_AXIS) {
@@ -441,8 +445,10 @@ public class Escalator extends Widget implements RequiresResize,
                 void stepAnimation(double progress) {
                     scroll.setScrollPos(position + offset * progress);
                 }
-                int pagePosition(Touch touch) {
-                    return vertical ? touch.getPageY() : touch.getPageX();
+
+                int pagePosition(CustomTouchEvent event) {
+                    JsArray<Touch> a = event.getNativeEvent().getTouches();
+                    return vertical ? a.get(0).getPageY() : a.get(0).getPageX();
                 }
                 boolean validSpeed(double speed) {
                     return Math.abs(speed) > MIN_VEL;
@@ -459,7 +465,7 @@ public class Escalator extends Widget implements RequiresResize,
                     return easingOutCirc(progress);
                 };
                 public void onComplete() {
-                    currentId = -1;
+                    touching = false;
                     escalator.body.domSorter.reschedule();
                 };
                 public void run(int duration) {
@@ -472,9 +478,7 @@ public class Escalator extends Widget implements RequiresResize,
             };
 
             public void touchStart(final CustomTouchEvent event) {
-                if (currentId < 0 && event.getNativeEvent().getTouches().length() > 0) {
-                    Touch touch = event.getNativeEvent().getTouches().get(0);
-                    currentId = touch.getIdentifier();
+                if (event.getNativeEvent().getTouches().length() == 1) {
                     if (yMov == null) {
                         yMov = new Movement(true);
                         xMov = new Movement(false);
@@ -486,47 +490,29 @@ public class Escalator extends Widget implements RequiresResize,
                     } else {
                         acceleration = 1;
                     }
-                    xMov.startTouch(touch);
-                    yMov.startTouch(touch);
+                    xMov.startTouch(event);
+                    yMov.startTouch(event);
+                    touching = true;
                 }
             }
 
             public void touchMove(final CustomTouchEvent event) {
-                Touch touch = currentTouch(event, currentId);
-                if (touch != null) {
-                    xMov.moveTouch(touch);
-                    yMov.moveTouch(touch);
-                    xMov.validate(yMov);
-                    yMov.validate(xMov);
-                    if (xMov.run || yMov.run) {
-                        event.getNativeEvent().preventDefault();
-                        moveScrollFromEvent(escalator, xMov.delta, yMov.delta, event.getNativeEvent());
-                    }
-                }
+                xMov.moveTouch(event);
+                yMov.moveTouch(event);
+                xMov.validate(yMov);
+                yMov.validate(xMov);
+                moveScrollFromEvent(escalator, xMov.delta, yMov.delta, event.getNativeEvent());
             }
 
             public void touchEnd(final CustomTouchEvent event) {
-                Touch touch = currentTouch(event, currentId);
-                if (touch == null) {
-                    xMov.endTouch(touch);
-                    yMov.endTouch(touch);
-                    xMov.validate(yMov);
-                    yMov.validate(xMov);
-                    // Adjust duration so as longer movements take more duration
-                    boolean vert = !xMov.run || yMov.run &&  Math.abs(yMov.offset) > Math.abs(xMov.offset);
-                    double delta = Math.abs((vert ? yMov : xMov).offset);
-                    animation.run((int)(3 * DURATION * easingOutExp(delta)));
-                }
-            }
-
-            private Touch currentTouch(CustomTouchEvent event, int id) {
-                JsArray<Touch> a = event.getNativeEvent().getTouches();
-                for (int i = 0; i < a.length(); i++) {
-                    if (a.get(i).getIdentifier() == id) {
-                        return a.get(i);
-                    }
-                }
-                return null;
+                xMov.endTouch(event);
+                yMov.endTouch(event);
+                xMov.validate(yMov);
+                yMov.validate(xMov);
+                // Adjust duration so as longer movements take more duration
+                boolean vert = !xMov.run || yMov.run &&  Math.abs(yMov.offset) > Math.abs(xMov.offset);
+                double delta = Math.abs((vert ? yMov : xMov).offset);
+                animation.run((int)(3 * DURATION * easingOutExp(delta)));
             }
 
             private double easingInOutCos(double val, double max) {
@@ -561,7 +547,6 @@ public class Escalator extends Widget implements RequiresResize,
                     && escalator.verticalScrollbar.showsScrollHandle();
             final boolean warrantedXScroll = deltaX != 0
                     && escalator.horizontalScrollbar.showsScrollHandle();
-
             if (warrantedYScroll || warrantedXScroll) {
                 event.preventDefault();
             }
@@ -2339,7 +2324,7 @@ public class Escalator extends Widget implements RequiresResize,
             private boolean sortIfConditionsMet() {
                 boolean enoughFramesHavePassed = framesPassed >= REQUIRED_FRAMES_PASSED;
                 boolean enoughTimeHasPassed = (Duration.currentTimeMillis() - startTime) >= SORT_DELAY_MILLIS;
-                boolean notTouchActivity = scroller.touchHandlerBundle.currentId < 0;
+                boolean notTouchActivity = !scroller.touchHandlerBundle.touching;
                 boolean conditionsMet = enoughFramesHavePassed
                         && enoughTimeHasPassed && notTouchActivity;
 
