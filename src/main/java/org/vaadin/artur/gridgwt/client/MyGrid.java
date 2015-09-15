@@ -1,5 +1,6 @@
 package org.vaadin.artur.gridgwt.client;
 
+import static com.google.gwt.query.client.GQuery.$;
 import static com.google.gwt.query.client.GQuery.console;
 
 import java.util.ArrayList;
@@ -53,9 +54,6 @@ public class MyGrid extends Grid<Person> {
         getColumn(1).setWidth(200);
         getColumn(2).setWidth(200);
         getColumn(3).setWidth(200);
-        onResize();
-
-
 
         // Some dummy data
         final ArrayList<Person> addons = new ArrayList<Person>();
@@ -74,14 +72,20 @@ public class MyGrid extends Grid<Person> {
         new Timer() {
             public void run() {
                 setDataSource(new ListDataSource<Person>(addons));
-                setHeaderVisible(false);
+                if (!$(".d3").isEmpty()) {
+                    setHeaderVisible(false);
+                }
             }
         }.schedule(1000);
 
 
     }
+    protected void onAttach() {
+        super.onAttach();
+        onResize();
+    }
     public void onResize() {
         setWidth("100%");
-        setHeight(Window.getClientHeight() + "px");
+        setHeight(getElement().getParentElement().getClientHeight() + "px");
     }
 }
