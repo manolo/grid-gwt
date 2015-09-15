@@ -2,6 +2,7 @@
 @import "contextmenu";
 @import "overlay";
 @import "tooltip";
+@import "reconnect-dialog";
 
 
 /*
@@ -25,7 +26,7 @@ $valo-global-included: false !default;
 
     // Version info for the debug window
     .v-vaadin-version:after {
-      content: "7.5.0";
+      content: "7.6.0.alpha5";
     }
 
     // Core widget styles come before any other component (and are always included),
@@ -374,6 +375,7 @@ $valo-shared-pathPrefix: null;
 
   @include valo-contextmenu;
 
+  @include valo-reconnect-dialog;
 }
 
 

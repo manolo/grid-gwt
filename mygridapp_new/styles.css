@@ -70,6 +70,9 @@
 @keyframes valo-animate-in-slide-down {
 		0% {
 		-webkit-transform: translateY(-100%);
+		-moz-transform: translateY(-100%);
+		-ms-transform: translateY(-100%);
+		-o-transform: translateY(-100%);
 		transform: translateY(-100%);
 	}
 	}
@@ -89,6 +92,9 @@
 @keyframes valo-animate-in-slide-up {
 		0% {
 		-webkit-transform: translateY(100%);
+		-moz-transform: translateY(100%);
+		-ms-transform: translateY(100%);
+		-o-transform: translateY(100%);
 		transform: translateY(100%);
 	}
 	}
@@ -108,6 +114,9 @@
 @keyframes valo-animate-in-slide-left {
 		0% {
 		-webkit-transform: translateX(100%);
+		-moz-transform: translateX(100%);
+		-ms-transform: translateX(100%);
+		-o-transform: translateX(100%);
 		transform: translateX(100%);
 	}
 	}
@@ -127,6 +136,9 @@
 @keyframes valo-animate-in-slide-right {
 		0% {
 		-webkit-transform: translateX(-100%);
+		-moz-transform: translateX(-100%);
+		-ms-transform: translateX(-100%);
+		-o-transform: translateX(-100%);
 		transform: translateX(-100%);
 	}
 	}
@@ -146,6 +158,9 @@
 @keyframes valo-animate-out-slide-down {
 		100% {
 		-webkit-transform: translateY(100%);
+		-moz-transform: translateY(100%);
+		-ms-transform: translateY(100%);
+		-o-transform: translateY(100%);
 		transform: translateY(100%);
 	}
 	}
@@ -165,6 +180,9 @@
 @keyframes valo-animate-out-slide-up {
 		100% {
 		-webkit-transform: translateY(-100%);
+		-moz-transform: translateY(-100%);
+		-ms-transform: translateY(-100%);
+		-o-transform: translateY(-100%);
 		transform: translateY(-100%);
 	}
 	}
@@ -184,6 +202,9 @@
 @keyframes valo-animate-out-slide-left {
 		100% {
 		-webkit-transform: translateX(-100%);
+		-moz-transform: translateX(-100%);
+		-ms-transform: translateX(-100%);
+		-o-transform: translateX(-100%);
 		transform: translateX(-100%);
 	}
 	}
@@ -203,6 +224,9 @@
 @keyframes valo-animate-out-slide-right {
 		100% {
 		-webkit-transform: translateX(100%);
+		-moz-transform: translateX(100%);
+		-ms-transform: translateX(100%);
+		-o-transform: translateX(100%);
 		transform: translateX(100%);
 	}
 	}
@@ -224,6 +248,9 @@
 @keyframes valo-overlay-animate-in {
 		0% {
 		-webkit-transform: translatey(-4px);
+		-moz-transform: translatey(-4px);
+		-ms-transform: translatey(-4px);
+		-o-transform: translatey(-4px);
 		transform: translatey(-4px);
 		opacity: 0;
 	}
@@ -247,6 +274,9 @@
 		100% {
 		opacity: 0;
 		-webkit-transform: translatey(30%);
+		-moz-transform: translatey(30%);
+		-ms-transform: translatey(30%);
+		-o-transform: translatey(30%);
 		transform: translatey(30%);
 	}
 	}
@@ -801,6 +831,9 @@
 @keyframes v-popupview-animate-in {
 		0% {
 		-webkit-transform: scale(0);
+		-moz-transform: scale(0);
+		-ms-transform: scale(0);
+		-o-transform: scale(0);
 		transform: scale(0);
 	}
 	}
@@ -935,6 +968,9 @@
 @keyframes valo-animate-out-scale-down-fade {
 		100% {
 		-webkit-transform: scale(0.8);
+		-moz-transform: scale(0.8);
+		-ms-transform: scale(0.8);
+		-o-transform: scale(0.8);
 		transform: scale(0.8);
 		opacity: 0;
 	}
@@ -945,7 +981,7 @@
  */
 
 .v-vaadin-version:after {
-	content: "7.5.0";
+	content: "7.6.0.alpha5";
 }
 
 .v-widget {
@@ -1822,6 +1858,60 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: linear-gradient(to bottom,#1b87e3 2%, #166ed5 98%);
 	color: #ecf2f8;
 	text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.valo .v-reconnect-dialog {
+	color: white;
+	top: 12px;
+	right: 12px;
+	max-width: 100%;
+	border-radius: 0;
+	-webkit-box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.25);
+	box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.25);
+	padding: 12px 15px;
+	background-color: #444;
+	background-color: rgba(68, 68, 68, 0.9);
+	line-height: 22px;
+	text-align: center;
+}
+
+.valo .v-reconnect-dialog .text {
+	display: inline-block;
+	padding-left: 10px;
+}
+
+.valo .v-reconnect-dialog .spinner {
+	height: 24px !important;
+	width: 24px !important;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+	border: 2px solid rgba(25, 125, 225, 0.2);
+	border-top-color: #197de1;
+	border-right-color: #197de1;
+	border-radius: 100%;
+	-webkit-animation: v-rotate-360 500ms infinite linear;
+	-moz-animation: v-rotate-360 500ms infinite linear;
+	animation: v-rotate-360 500ms infinite linear;
+	pointer-events: none;
+	display: none;
+	vertical-align: middle;
+}
+
+.v-ie8 .valo .v-reconnect-dialog .spinner, .v-ie9 .valo .v-reconnect-dialog .spinner {
+	border: none;
+	border-radius: 4px;
+	background: #fff url(shared/img/spinner.gif) no-repeat 50% 50%;
+	background-size: 80%;
+}
+
+.v-ie8 .valo .v-reconnect-dialog .spinner {
+	min-width: 30px;
+	min-height: 30px;
+}
+
+.valo .v-reconnect-dialog.active .spinner {
+	display: inline-block;
 }
 
 .valo .v-absolutelayout-wrapper {
@@ -4269,6 +4359,7 @@ div.v-layout.v-horizontal.v-widget {
 	outline: none;
 	padding: 0 4px;
 	text-align: right;
+	line-height: 1;
 }
 
 .valo .v-grid-sidebar.v-contextmenu .v-grid-sidebar-button::-moz-focus-inner {
@@ -4291,8 +4382,8 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .valo .v-grid-sidebar.v-contextmenu.open .v-grid-sidebar-button:after {
-	content: "\00d7";
-	font-size: 16px;
+	content: "\f0c9";
+	font-size: 14px;
 	line-height: 1;
 }
 
@@ -4301,11 +4392,12 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .v-ie8 .valo .v-grid-sidebar.v-contextmenu.open .v-grid-sidebar-button:after {
+	vertical-align: middle;
+	text-align: center;
 	display: inline;
 }
 
 .valo .v-grid-sidebar.v-contextmenu .v-grid-sidebar-content {
-	border-top: 1px solid #d4d4d4;
 	padding: 4px 0;
 }
 
@@ -4345,6 +4437,13 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .valo .v-grid-row > td:first-child, .valo .v-grid-editor-cells > div:first-child {
+	border-left: none;
+}
+
+.valo .v-grid-editor-cells.frozen > div {
+	-webkit-box-shadow: 1px 0 2px rgba(0, 0, 0, 0.1);
+	box-shadow: 1px 0 2px rgba(0, 0, 0, 0.1);
+	border-right: 1px solid #d4d4d4;
 	border-left: none;
 }
 
@@ -4470,6 +4569,10 @@ div.v-layout.v-horizontal.v-widget {
 	white-space: nowrap;
 }
 
+.valo .v-grid-editor-cells.frozen {
+	z-index: 2;
+}
+
 .valo .v-grid-editor-cells  > div {
 	display: inline-block;
 	-webkit-box-sizing: border-box;
@@ -4508,6 +4611,10 @@ div.v-layout.v-horizontal.v-widget {
 	max-width: 100%;
 }
 
+.valo .v-grid-editor-cells  > div.not-editable.v-grid-cell {
+	float: none;
+}
+
 .valo .v-grid-editor-cells .error::before {
 	position: absolute;
 	display: block;
@@ -4529,6 +4636,7 @@ div.v-layout.v-horizontal.v-widget {
 	margin-top: -1px;
 	background: white;
 	padding: 0 5px;
+	width: 100%;
 }
 
 .valo .v-grid-editor-footer  + .v-grid-editor-cells > div {
@@ -4701,6 +4809,10 @@ div.v-layout.v-horizontal.v-widget {
 	vertical-align: middle;
 }
 
+.valo .v-grid-editor-cells > div.not-editable.v-grid-cell {
+	float: none;
+}
+
 .valo .v-grid-editor-cells > div .error::before {
 	border-top: 9px solid #ed473b;
 	border-right: 9px solid transparent;
@@ -4780,10 +4892,6 @@ div.v-layout.v-horizontal.v-widget {
 
 .valo .v-grid-spacer {
 	margin-top: -1px;
-}
-
-.valo .v-grid-sidebar.v-contextmenu.open .v-grid-sidebar-button:after {
-	font-size: 20px;
 }
 
 .valo .v-grid-sidebar.v-contextmenu.open .v-grid-sidebar-content {
@@ -8180,9 +8288,9 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: radial-gradient(  circle at 50% 50%, #222, #0e0e0e);
 	opacity: 0.72;
 	filter: alpha(opacity=72) ;
-	-webkit-animation: valo-animate-in-fade 400ms 100ms;
-	-moz-animation: valo-animate-in-fade 400ms 100ms;
-	animation: valo-animate-in-fade 400ms 100ms;
+	-webkit-animation: valo-animate-in-fade 400ms 100ms backwards;
+	-moz-animation: valo-animate-in-fade 400ms 100ms backwards;
+	animation: valo-animate-in-fade 400ms 100ms backwards;
 }
 
 .v-op12 .valo .v-window-modalitycurtain {
@@ -10085,9 +10193,9 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .valo .v-tabsheet-tabsheetpanel > .v-scrollable > .v-widget {
-	-webkit-animation: valo-animate-in-fade 300ms;
-	-moz-animation: valo-animate-in-fade 300ms;
-	animation: valo-animate-in-fade 300ms;
+	-webkit-animation: valo-animate-in-fade 300ms backwards;
+	-moz-animation: valo-animate-in-fade 300ms backwards;
+	animation: valo-animate-in-fade 300ms backwards;
 }
 
 .valo .v-tabsheet-deco {
@@ -11862,7 +11970,7 @@ div.v-layout.v-horizontal.v-widget {
 	letter-spacing: 0;
 }
 
-.valo .v-Notification-description {
+.valo .v-Notification-description, .valo .v-Notification-details {
 	margin: 0;
 	display: inline-block;
 	vertical-align: middle;
@@ -11872,7 +11980,7 @@ div.v-layout.v-horizontal.v-widget {
 	overflow: auto;
 }
 
-.valo .v-Notification-caption ~ .v-Notification-description {
+.valo .v-Notification-caption ~ .v-Notification-description, .valo .v-Notification-caption ~ .v-Notification-details {
 	margin-left: 24px;
 }
 
@@ -11895,7 +12003,7 @@ div.v-layout.v-horizontal.v-widget {
 	line-height: 22px;
 }
 
-.valo .v-Notification-system .v-Notification-description {
+.valo .v-Notification-system .v-Notification-description, .valo .v-Notification-system .v-Notification-details {
 	max-width: 50em;
 }
 
@@ -11936,7 +12044,7 @@ div.v-layout.v-horizontal.v-widget {
 	vertical-align: middle;
 }
 
-.valo .v-Notification-system .v-Notification-description {
+.valo .v-Notification-system .v-Notification-description, .valo .v-Notification-system .v-Notification-details {
 	color: #e6e6e6;
 }
 
@@ -11992,7 +12100,7 @@ div.v-layout.v-horizontal.v-widget {
 	vertical-align: middle;
 }
 
-.valo .v-Notification.dark .v-Notification-description {
+.valo .v-Notification.dark .v-Notification-description, .valo .v-Notification.dark .v-Notification-details {
 	color: #e6e6e6;
 }
 
@@ -12007,7 +12115,7 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 12px 15px;
 }
 
-.valo .v-Notification.bar .v-Notification-description {
+.valo .v-Notification.bar .v-Notification-description, .valo .v-Notification.bar .v-Notification-details {
 	max-width: 50em;
 }
 
