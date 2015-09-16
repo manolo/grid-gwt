@@ -319,15 +319,9 @@ public class Escalator extends Widget implements RequiresResize,
              * {@link com.google.gwt.dom.client.NativeEvent NativeEvent} isn't
              * properly populated with the correct values.
              */
-            private final static class CustomTouchEvent extends
-                    JavaScriptObject {
+            private final static class CustomTouchEvent extends NativeEvent {
                 protected CustomTouchEvent() {
                 }
-
-                public native NativeEvent getNativeEvent()
-                /*-{
-                    return this;
-                }-*/;
 
                 public native int getPageX()
                 /*-{
@@ -337,6 +331,11 @@ public class Escalator extends Widget implements RequiresResize,
                 public native int getPageY()
                 /*-{
                     return this.targetTouches[0].pageY;
+                }-*/;
+
+                public native boolean isCancelable()
+                /*-{
+                    return this.cancelable;
                 }-*/;
             }
 
@@ -375,48 +374,67 @@ public class Escalator extends Widget implements RequiresResize,
 
             // Duration of the inertial scrolling simulation. Devices with
             // larger screens take longer durations.
-            private static final int DURATION = (int)Window.getClientHeight();
+            private static final int DURATION = Window.getClientHeight();
             // multiply scroll velocity with repeated touching
             private int acceleration = 1;
             private boolean touching = false;
             // Two movement objects for storing status and processing touches
             private Movement yMov, xMov;
-            final double MIN_VEL = 0.6, MAX_VEL = 4, F_VEL = 1500, F_ACC = 0.7, F_AXIS = 1;
+            final double MIN_VEL = 0.6, MAX_VEL = 4, F_VEL = 1500, F_ACC = 0.7,
+                    F_AXIS = 1;
 
             // The object to deal with one direction scrolling
             private class Movement {
                 final List<Double> speeds = new ArrayList<Double>();
                 final ScrollbarBundle scroll;
-                double position, offset, velocity, prevPos, prevTime, delta;
+                double position, offset, velocity, prevPos, prevTime, delta, scrollMax;
                 boolean run, vertical;
 
                 public Movement(boolean vertical) {
                     this.vertical = vertical;
-                    scroll = vertical ? escalator.verticalScrollbar : escalator.horizontalScrollbar;
+                    scroll = vertical ? escalator.verticalScrollbar
+                            : escalator.horizontalScrollbar;
                 }
 
                 public void startTouch(CustomTouchEvent event) {
                     speeds.clear();
                     prevPos = pagePosition(event);
                     prevTime = Duration.currentTimeMillis();
+                    scrollMax = scroll.getScrollSize() - scroll.getOffsetSize();
+                    delta = 0;
                 }
-                public void moveTouch(CustomTouchEvent event) {
+
+                public boolean moveTouch(CustomTouchEvent event) {
                     double pagePosition = pagePosition(event);
-                    if (pagePosition > -1) {
+                    run = false;
+                    // skip grids without scroll
+                    if (scrollMax > 1) {
                         delta = prevPos - pagePosition;
                         double now = Duration.currentTimeMillis();
                         double ellapsed = now - prevTime;
                         velocity = delta / ellapsed;
-                        // if last speed was so low, reset speeds and start storing again
+                        // if last speed was so low, reset speeds and start
+                        // storing again
                         if (speeds.size() > 0 && !validSpeed(speeds.get(0))) {
                             speeds.clear();
-                            run = true;
                         }
                         speeds.add(0, velocity);
                         prevTime = now;
                         prevPos = pagePosition;
+                        position = scroll.getScrollPos();
+
+                        // We don't move the scroll if scroll position has
+                        // reached any edge.
+                        if (delta != 0 && !inScrollRange(position + delta)) {
+                            run = false;
+                        } else {
+                            scroll.setScrollPosByDelta(delta);
+                            run = true;
+                        }
                     }
+                    return run;
                 }
+
                 public void endTouch(CustomTouchEvent event) {
                     // Compute average speed
                     velocity = 0;
@@ -424,28 +442,45 @@ public class Escalator extends Widget implements RequiresResize,
                         velocity += s / speeds.size();
                     }
                     position = scroll.getScrollPos();
-                    // Compute offset, and adjust it with an easing curve so as movement is smoother.
-                    offset = F_VEL * velocity * acceleration * easingInOutCos(velocity, MAX_VEL);
+
+                    // Compute offset, and adjust it with an easing curve so as
+                    // movement is smoother.
+                    offset = F_VEL * velocity * acceleration
+                            * easingInOutCos(velocity, MAX_VEL);
+
                     // Enable or disable inertia movement in this axis
                     run = validSpeed(velocity);
                     if (run) {
-                        event.getNativeEvent().preventDefault();
+                        event.preventDefault();
                     }
                 }
+
                 void validate(Movement other) {
-                    if (!run || other.velocity > 0 && Math.abs(velocity / other.velocity) < F_AXIS) {
+                    // Discard diagonal movements when delta in one direction is insignificant
+                    if (!run || other.velocity > 0
+                            && Math.abs(velocity / other.velocity) < F_AXIS) {
                         delta = offset = 0;
                         run = false;
                     }
                 }
+
                 void stepAnimation(double progress) {
-                    scroll.setScrollPos(position + offset * progress);
+                    if (run) {
+                        double p = position + offset * progress;
+                        scroll.setScrollPos(p);
+                        run = inScrollRange(p);
+                    }
+                }
+
+                boolean inScrollRange(double p) {
+                    return p > 0 && p < scrollMax;
                 }
 
                 int pagePosition(CustomTouchEvent event) {
-                    JsArray<Touch> a = event.getNativeEvent().getTouches();
+                    JsArray<Touch> a = event.getTouches();
                     return vertical ? a.get(0).getPageY() : a.get(0).getPageX();
                 }
+
                 boolean validSpeed(double speed) {
                     return Math.abs(speed) > MIN_VEL;
                 }
@@ -453,17 +488,29 @@ public class Escalator extends Widget implements RequiresResize,
 
             // Using GWT animations which take care of native animation frames.
             private Animation animation = new Animation() {
+                @Override
                 public void onUpdate(double progress) {
                     xMov.stepAnimation(progress);
                     yMov.stepAnimation(progress);
+                    if (!xMov.run && !yMov.run) {
+                        // Stop animation as soon as we reach the border,
+                        // so as we do not wait to move the external scroll.
+                        cancel();
+                    }
                 }
+
+                @Override
                 public double interpolate(double progress) {
                     return easingOutCirc(progress);
                 };
+
+                @Override
                 public void onComplete() {
                     touching = false;
                     escalator.body.domSorter.reschedule();
                 };
+
+                @Override
                 public void run(int duration) {
                     if (xMov.run || yMov.run) {
                         super.run(duration);
@@ -474,15 +521,16 @@ public class Escalator extends Widget implements RequiresResize,
             };
 
             public void touchStart(final CustomTouchEvent event) {
-                if (!isEventInBody(escalator, event.getNativeEvent())
-                        && event.getNativeEvent().getTouches().length() == 1) {
+                // Consider only one-finger gestures over the body.
+                if (eventOnBody(escalator, event)
+                        && event.getTouches().length() == 1) {
                     if (yMov == null) {
                         yMov = new Movement(true);
                         xMov = new Movement(false);
                     }
                     if (animation.isRunning()) {
                         acceleration += F_ACC;
-                        event.getNativeEvent().preventDefault();
+                        event.preventDefault();
                         animation.cancel();
                     } else {
                         acceleration = 1;
@@ -491,6 +539,7 @@ public class Escalator extends Widget implements RequiresResize,
                     yMov.startTouch(event);
                     touching = true;
                 } else {
+                    // Cancel to allow multi-finger gestures like zoom.
                     touching = false;
                     animation.cancel();
                     acceleration = 1;
@@ -498,13 +547,16 @@ public class Escalator extends Widget implements RequiresResize,
             }
 
             public void touchMove(final CustomTouchEvent event) {
-                if (touching) {
+                if (touching && event.isCancelable()) {
                     xMov.moveTouch(event);
                     yMov.moveTouch(event);
                     xMov.validate(yMov);
                     yMov.validate(xMov);
-                    event.getNativeEvent().preventDefault();
-                    moveScrollFromEvent(escalator, xMov.delta, yMov.delta, event.getNativeEvent());
+                    if (xMov.run || yMov.run) {
+                        // If we move the scroll prevent default, otherwise
+                        // pass the control to the device.
+                        event.preventDefault();
+                    }
                 }
             }
 
@@ -514,10 +566,11 @@ public class Escalator extends Widget implements RequiresResize,
                     yMov.endTouch(event);
                     xMov.validate(yMov);
                     yMov.validate(xMov);
-                    // Adjust duration so as longer movements take more duration
-                    boolean vert = !xMov.run || yMov.run &&  Math.abs(yMov.offset) > Math.abs(xMov.offset);
+                    // Adjust duration so as longer movements take bigger duration
+                    boolean vert = !xMov.run || yMov.run
+                            && Math.abs(yMov.offset) > Math.abs(xMov.offset);
                     double delta = Math.abs((vert ? yMov : xMov).offset);
-                    animation.run((int)(3 * DURATION * easingOutExp(delta)));
+                    animation.run((int) (3 * DURATION * easingOutExp(delta)));
                 }
             }
 
@@ -525,24 +578,27 @@ public class Escalator extends Widget implements RequiresResize,
                 return 0.5 - 0.5 * Math.cos(Math.PI * Math.signum(val)
                         * Math.min(Math.abs(val), max) / max);
             }
+
             private double easingOutExp(double delta) {
                 return (1 - Math.pow(2, -delta / 1000));
             }
+
             private double easingOutCirc(double progress) {
                 return Math.sqrt(1 - (progress - 1) * (progress - 1));
             }
         }
 
-        private static boolean isEventInBody(Escalator escalator, NativeEvent event) {
-            return escalator.body.getElement().isOrHasChild((Node) event.cast());
+        public static boolean eventOnBody(Escalator escalator, NativeEvent event) {
+            return escalator.bodyElem.isOrHasChild(event.getEventTarget().<Node>cast());
         }
 
         public static void moveScrollFromEvent(final Escalator escalator,
                 final double deltaX, final double deltaY,
                 final NativeEvent event) {
 
-            if (!isEventInBody(escalator, event)) {
-                return;
+            // Prevent scrolling on Headers/Footers
+            if (!eventOnBody(escalator, event)) {
+                 return;
             }
 
             if (!Double.isNaN(deltaX)) {
@@ -566,7 +622,6 @@ public class Escalator extends Widget implements RequiresResize,
             }
         }
     }
-
 
     /**
      * ScrollDestination case-specific handling logic.
@@ -1332,7 +1387,8 @@ public class Escalator extends Widget implements RequiresResize,
                         cellElem.addClassName("frozen");
                         position.set(cellElem, scroller.lastScrollLeft, 0);
                     }
-                    if (columnConfiguration.frozenColumns > 0 && col == columnConfiguration.frozenColumns - 1) {
+                    if (columnConfiguration.frozenColumns > 0
+                            && col == columnConfiguration.frozenColumns - 1) {
                         cellElem.addClassName("last-frozen");
                     }
                 }
@@ -1599,7 +1655,8 @@ public class Escalator extends Widget implements RequiresResize,
             }
         }
 
-        private void toggleFrozenColumnClass(int column, boolean frozen, String className) {
+        private void toggleFrozenColumnClass(int column, boolean frozen,
+                String className) {
             final NodeList<TableRowElement> childRows = root.getRows();
 
             for (int row = 0; row < childRows.getLength(); row++) {
@@ -6420,7 +6477,7 @@ public class Escalator extends Widget implements RequiresResize,
     public void onResize() {
         if (isAttached() && !layoutIsScheduled) {
             layoutIsScheduled = true;
-            Scheduler.get().scheduleDeferred(layoutCommand);
+            Scheduler.get().scheduleFinally(layoutCommand);
         }
     }
 
