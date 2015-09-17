@@ -514,10 +514,12 @@ public class Escalator extends Widget implements RequiresResize,
                 // Consider only one-finger gestures over the body.
                 if (eventOnBody(escalator, event)
                         && event.getTouches().length() == 1) {
-                    escalator.bodyElem.addClassName("scrolling");
                     if (yMov == null) {
                         yMov = new Movement(true);
                         xMov = new Movement(false);
+                        // Mark this as a touch device. Useful to
+                        // ignore hover styles in iOS.
+                        escalator.bodyElem.addClassName("touch");
                     }
                     if (animation.isRunning()) {
                         acceleration += F_ACC;
@@ -568,7 +570,6 @@ public class Escalator extends Widget implements RequiresResize,
                             && Math.abs(yMov.offset) > Math.abs(xMov.offset);
                     double delta = Math.abs((vert ? yMov : xMov).offset);
                     animation.run((int) (3 * DURATION * easingOutExp(delta)));
-                    escalator.bodyElem.removeClassName("scrolling");
                 }
             }
 
@@ -598,6 +599,7 @@ public class Escalator extends Widget implements RequiresResize,
             if (!eventOnBody(escalator, event)) {
                  return;
             }
+            escalator.bodyElem.addClassName("scrolling");
 
             if (!Double.isNaN(deltaX)) {
                 escalator.horizontalScrollbar.setScrollPosByDelta(deltaX);
@@ -617,6 +619,7 @@ public class Escalator extends Widget implements RequiresResize,
                     && escalator.horizontalScrollbar.showsScrollHandle();
             if (warrantedYScroll || warrantedXScroll) {
                 event.preventDefault();
+                escalator.body.domSorter.reschedule();
             }
         }
     }
@@ -2372,6 +2375,7 @@ public class Escalator extends Widget implements RequiresResize,
                                 .requestAnimationFrame(this);
                     } else {
                         waiting = false;
+                        bodyElem.removeClassName("scrolling");
                     }
                 }
             };
