@@ -387,7 +387,8 @@ public class Escalator extends Widget implements RequiresResize,
             private class Movement {
                 final List<Double> speeds = new ArrayList<Double>();
                 final ScrollbarBundle scroll;
-                double position, offset, velocity, prevPos, prevTime, delta, scrollMax;
+                double position, offset, velocity, prevPos, prevTime, delta;
+                double scrollMax;
                 boolean run, vertical;
 
                 public Movement(boolean vertical) {
@@ -404,7 +405,7 @@ public class Escalator extends Widget implements RequiresResize,
                     delta = 0;
                 }
 
-                public boolean moveTouch(CustomTouchEvent event) {
+                public void moveTouch(CustomTouchEvent event) {
                     double pagePosition = pagePosition(event);
                     run = false;
                     // skip grids without scroll
@@ -422,17 +423,15 @@ public class Escalator extends Widget implements RequiresResize,
                         prevTime = now;
                         prevPos = pagePosition;
                         position = scroll.getScrollPos();
-
-                        // We don't move the scroll if scroll position has
-                        // reached any edge.
-                        if (delta != 0 && !inScrollRange(position + delta)) {
-                            run = false;
-                        } else {
-                            scroll.setScrollPosByDelta(delta);
-                            run = true;
-                        }
                     }
-                    return run;
+                }
+
+                public void validate(Movement other) {
+                    // We don't move the scroll if no delta, scroll position
+                    // has reached the edge, or movement in one direction is
+                    // insignificant.
+                    run = delta != 0 && inScrollRange(position + delta) && Math.abs(other.delta / delta) < F_AXIS;
+                    if (!run) delta = 0;
                 }
 
                 public void endTouch(CustomTouchEvent event) {
@@ -452,15 +451,6 @@ public class Escalator extends Widget implements RequiresResize,
                     run = validSpeed(velocity);
                     if (run) {
                         event.preventDefault();
-                    }
-                }
-
-                void validate(Movement other) {
-                    // Discard diagonal movements when delta in one direction is insignificant
-                    if (!run || other.velocity > 0
-                            && Math.abs(velocity / other.velocity) < F_AXIS) {
-                        delta = offset = 0;
-                        run = false;
                     }
                 }
 
@@ -524,6 +514,7 @@ public class Escalator extends Widget implements RequiresResize,
                 // Consider only one-finger gestures over the body.
                 if (eventOnBody(escalator, event)
                         && event.getTouches().length() == 1) {
+                    escalator.bodyElem.addClassName("scrolling");
                     if (yMov == null) {
                         yMov = new Movement(true);
                         xMov = new Movement(false);
@@ -552,6 +543,12 @@ public class Escalator extends Widget implements RequiresResize,
                     yMov.moveTouch(event);
                     xMov.validate(yMov);
                     yMov.validate(xMov);
+                    if (xMov.run) {
+                        xMov.scroll.setScrollPosByDelta(xMov.delta);
+                    }
+                    if (yMov.run) {
+                        yMov.scroll.setScrollPosByDelta(yMov.delta);
+                    }
                     if (xMov.run || yMov.run) {
                         // If we move the scroll prevent default, otherwise
                         // pass the control to the device.
@@ -571,6 +568,7 @@ public class Escalator extends Widget implements RequiresResize,
                             && Math.abs(yMov.offset) > Math.abs(xMov.offset);
                     double delta = Math.abs((vert ? yMov : xMov).offset);
                     animation.run((int) (3 * DURATION * easingOutExp(delta)));
+                    escalator.bodyElem.removeClassName("scrolling");
                 }
             }
 
