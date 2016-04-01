@@ -1,13 +1,22 @@
 package org.vaadin.artur.gridgwt.client;
 
+import jsinterop.annotations.JsType;
+
 import com.google.gwt.core.client.EntryPoint;
-import com.google.gwt.event.logical.shared.ResizeEvent;
-import com.google.gwt.event.logical.shared.ResizeHandler;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.RootPanel;
 
 public class GridApp implements EntryPoint {
+    
+    @JsType
+    public static  class GridComponent {
+        public GridComponent() {
+        }
+        public void a(String s) {
+        }
+    }
+    
     @Override
     public void onModuleLoad() {
         Panel p = RootPanel.get("new_v2");
@@ -25,6 +34,9 @@ public class GridApp implements EntryPoint {
             onResize(g);
         }
     }
+    private native static void o(Object g) /*-{
+        $wnd.a = g;
+    }-*/;
     
     private native static void onResize(MyGrid g) /*-{
         $wnd.onresize = function() {
