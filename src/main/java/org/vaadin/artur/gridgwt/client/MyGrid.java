@@ -72,7 +72,7 @@ public class MyGrid extends Grid<Person> {
         new Timer() {
             public void run() {
                 setDataSource(new ListDataSource<Person>(addons));
-                if (!$(".d3").isEmpty()) {
+                if ($(".header-visible").isEmpty()) {
                     setHeaderVisible(false);
                 }
             }
