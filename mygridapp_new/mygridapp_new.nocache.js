@@ -390,17 +390,17 @@ function mygridapp_new(){
     }
     var strongName;
     try {
-      unflattenKeylistIntoAnswers(['none', 'js', 'gecko1_8'], 'D2A8E7AE6899F96C2909950A9B6F2F4B');
-      unflattenKeylistIntoAnswers(['none', 'native', 'gecko1_8'], 'D2A8E7AE6899F96C2909950A9B6F2F4B' + ':1');
-      unflattenKeylistIntoAnswers(['none', 'native', 'safari'], 'D2A8E7AE6899F96C2909950A9B6F2F4B' + ':10');
-      unflattenKeylistIntoAnswers(['yes', 'js', 'gecko1_8'], 'D2A8E7AE6899F96C2909950A9B6F2F4B' + ':2');
-      unflattenKeylistIntoAnswers(['yes', 'native', 'gecko1_8'], 'D2A8E7AE6899F96C2909950A9B6F2F4B' + ':3');
-      unflattenKeylistIntoAnswers(['none', 'js', 'ie10'], 'D2A8E7AE6899F96C2909950A9B6F2F4B' + ':4');
-      unflattenKeylistIntoAnswers(['none', 'native', 'ie10'], 'D2A8E7AE6899F96C2909950A9B6F2F4B' + ':5');
-      unflattenKeylistIntoAnswers(['none', 'js', 'ie8'], 'D2A8E7AE6899F96C2909950A9B6F2F4B' + ':6');
-      unflattenKeylistIntoAnswers(['none', 'native', 'ie8'], 'D2A8E7AE6899F96C2909950A9B6F2F4B' + ':7');
-      unflattenKeylistIntoAnswers(['none', 'js', 'ie9'], 'D2A8E7AE6899F96C2909950A9B6F2F4B' + ':8');
-      unflattenKeylistIntoAnswers(['none', 'native', 'ie9'], 'D2A8E7AE6899F96C2909950A9B6F2F4B' + ':9');
+      unflattenKeylistIntoAnswers(['none', 'js', 'gecko1_8'], 'D6929603789D4C0CC47E4786B699EB57');
+      unflattenKeylistIntoAnswers(['none', 'native', 'gecko1_8'], 'D6929603789D4C0CC47E4786B699EB57' + ':1');
+      unflattenKeylistIntoAnswers(['none', 'native', 'safari'], 'D6929603789D4C0CC47E4786B699EB57' + ':10');
+      unflattenKeylistIntoAnswers(['yes', 'js', 'gecko1_8'], 'D6929603789D4C0CC47E4786B699EB57' + ':2');
+      unflattenKeylistIntoAnswers(['yes', 'native', 'gecko1_8'], 'D6929603789D4C0CC47E4786B699EB57' + ':3');
+      unflattenKeylistIntoAnswers(['none', 'js', 'ie10'], 'D6929603789D4C0CC47E4786B699EB57' + ':4');
+      unflattenKeylistIntoAnswers(['none', 'native', 'ie10'], 'D6929603789D4C0CC47E4786B699EB57' + ':5');
+      unflattenKeylistIntoAnswers(['none', 'js', 'ie8'], 'D6929603789D4C0CC47E4786B699EB57' + ':6');
+      unflattenKeylistIntoAnswers(['none', 'native', 'ie8'], 'D6929603789D4C0CC47E4786B699EB57' + ':7');
+      unflattenKeylistIntoAnswers(['none', 'js', 'ie9'], 'D6929603789D4C0CC47E4786B699EB57' + ':8');
+      unflattenKeylistIntoAnswers(['none', 'native', 'ie9'], 'D6929603789D4C0CC47E4786B699EB57' + ':9');
       strongName = answers[computePropValue('modernie')][computePropValue('selectorCapability')][computePropValue('user.agent')];
       var idx = strongName.indexOf(':');
       if (idx != -1) {

@@ -3,7 +3,7 @@ var __gwtModuleFunction = $wnd.mygridapp_new;
 var $sendStats = __gwtModuleFunction.__sendStats;
 $sendStats('moduleStartup', 'moduleEvalStart');
 var $gwt_version = "2.8.0-SNAPSHOT";
-var $strongName = 'D2A8E7AE6899F96C2909950A9B6F2F4B';
+var $strongName = 'D6929603789D4C0CC47E4786B699EB57';
 var $gwt = {};
 var $doc = $wnd.document;
 var $moduleName, $moduleBase;
@@ -21386,7 +21386,7 @@ function MyGrid$7(this$0, val$addons){
 defineClass(206, 65, {}, MyGrid$7);
 _.run_0 = function run_6(){
   $setDataSource(this.this$01, new ListDataSource(this.val$addons2));
-  ($clinit_GQuery() , $_0(document_0)).elements.length == 0 || $setVisible(this.this$01.header_0);
+  ($clinit_GQuery() , $_0(document_0)).elements.length == 0 && $setVisible(this.this$01.header_0);
 }
 ;
 var Lorg_vaadin_artur_gridgwt_client_MyGrid$7_2_classLit = createForClass('org.vaadin.artur.gridgwt.client', 'MyGrid/7', 206);
