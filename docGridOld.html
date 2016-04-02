@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="initial-scale=1" />
+
+    <title>Grid</title>
+<!--     <script src="fullscreen.js"></script> -->
+    <script src="mygridapp_old/mygridapp_old.nocache.js"></script>
+  <style>
+    body {
+       font-family: arial;
+       margin: 0px;
+    }
+    .d0 {
+       position: absolute;
+       width: 125%;
+       height: 125%;
+       background: pink;
+
+       display: -webkit-flex;
+       display: -moz-flex;
+       display: -ms-flexbox;
+       display: flex;
+
+       -webkit-align-items: center;
+       -moz-align-items: center;
+       -ms-align-items: center;
+       align-items: center;
+
+       -webkit-justify-content: center;
+       -moz-justify-content: center;
+       -ms-justify-content: center;
+       justify-content: center;
+    }
+    .d1 {
+       width: 50%;
+       height: 50%;
+       background: yellow;
+       overflow: hidden;
+    }
+  </style>
+
+
+  </head>
+  <body>
+    <div class="d0">
+      <div class="d1" id="grid">
+      </div>
+    </div>
+  </body>
+</html>

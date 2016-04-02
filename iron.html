@@ -12,35 +12,19 @@
   <link rel="import" href="bower_components/polymer/polymer.html">
 
   <link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout.html">
+  <link rel="import" href="bower_components/iron-flex-layout/classes/iron-flex-layout.html">
   <link rel="import" href="bower_components/iron-list/iron-list.html">
   <style>
     body {
        font-family: arial;
        margin: 0px;
     }
-    .iron-list {
-       width: 760px;
-    }
-    .d1 {
-       position: absolute;
-       width: 100%;
-       height: 100%;
-    }
-    iron-list {
-       height: 100%;
-    }
-    button {
-      position: fixed;
-      top: 5px;
-      right: 5px;
-    }
   </style>
-
 
   </head>
   <body>
     <div class="d1">
-        <iron-list id="list">
+        <iron-list id="list" class="fit">
           <style>
               .row, .item {
                  height: 38px;
@@ -58,6 +42,13 @@
               .border {
                 border-bottom: 1px solid #e3e3e3;
               }
+              .cero, .one {
+                 width: 100px;
+              }
+              .one {
+                 position: absolute;
+                 left: 0px;
+              }
               .one, .two, .three, .four, .five, .six {
                  overflow: hidden;
                  display: inline-block;
@@ -70,8 +61,9 @@
               .two, .three, .four {
                  width: 180px;
               }
-              .five, .six {
-                 width: 50px;
+              .row {
+                 min-width: 600px;
+                 
               }
           </style>
 
@@ -79,13 +71,14 @@
             <div class="row">
               <div class="item">
                 <div class="pad">
-                  <div>
+                  <div class="row layout horizontal">
+                    <div class='cero'></div>
                     <div class='one'>[[item.0]]</div>
-                    <div class='two'>[[item.1]]</div>
-                    <div class='three'>[[item.2]]</div>
-                    <div class='four'>[[item.3]]</div>
-                    <div class='five'>[[item.4]]</div>
-                    <div class='six'>[[item.5]]</div>
+                    <div class='two flex'>[[item.1]]</div>
+                    <div class='three flex'>[[item.2]]</div>
+                    <div class='four flex'>[[item.3]]</div>
+                    <div class='five flex'>[[item.4]]</div>
+                    <div class='six flex'>[[item.5]]</div>
                   </div>
                 </div>
               </div>
@@ -93,7 +86,6 @@
             </div>
           </template>
         </iron-list>
-<!--         <button id='b'>Click</button> -->
 
         <script>
         function on (element, event, callback, capture) {
@@ -154,6 +146,7 @@
              data.push([cnt++, "Jeff", "Harris", "CEO", 44, 1]);
              data.push([cnt++, "George", "Washington", "President", 78, 3]);
              data.push([cnt++, "Abraham", "Lincoln", "ExPresident", 114, 5]);
+             data.push([cnt++, "Manolo", "Carrasco", "Currante", 12, 1]);
              data.push([cnt++, "Henrik", "Paul", "Currito", 32, 6]);
              data.push([cnt++, "Paul", "Vaca", "Ganadero", 56, 66]);
              data.push([cnt++, "Biff", "Eeter", "Drinker", 34, 4]);
@@ -165,16 +158,6 @@
             l.addEventListener('touchstart',function(e){
               console.log(e);
             })
-//             var b = document.querySelector('button');
-//             var e = document.createEvent('TouchEvent');
-            
-//             simulate(l)
-//             e.initTouchEvent('touchstart'
-//                 true, true, window, 1, screenX, screenY, clientX, clientY,
-//                 ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget
-//             b.addEventListener('')
-//             window.a = this;
-// //             console.log(Polymer.dom(this).querySelector('*'));
           });
         </script>
     </div>
