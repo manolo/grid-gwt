@@ -96,7 +96,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>gwt-maven-plugin</artifactId>
-        <version>2.7.0</version>
+        <version>${gwtVersion}</version>
         <executions>
           <execution>
             <goals>
@@ -114,7 +114,8 @@
           <modules>
             <module>org.vaadin.artur.gridgwt.GridApp</module>
           </modules>
-          <style>PRETTY</style>
+          <!-- <style>PRETTY</style> -->
+          <generateJsInteropExports>true</generateJsInteropExports>
         </configuration>
       </plugin>
 

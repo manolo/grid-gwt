@@ -9,13 +9,13 @@ import com.google.gwt.user.client.ui.RootPanel;
 
 public class GridApp implements EntryPoint {
     
-    @JsType
-    public static  class GridComponent {
-        public GridComponent() {
-        }
-        public void a(String s) {
-        }
-    }
+//    @JsType
+//    public static  class GridComponent {
+//        public GridComponent() {
+//        }
+//        public void a(String s) {
+//        }
+//    }
     
     @Override
     public void onModuleLoad() {

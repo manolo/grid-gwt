@@ -63,6 +63,7 @@ public class MyGrid extends Grid<Person> {
             addons.add(new Person("Jeff", "Harris", "CEO", 44, 1));
             addons.add(new Person("George", "Washington", "President", 78, 3));
             addons.add(new Person("Abraham", "Lincoln", "ExPresident", 114, 5));
+            addons.add(new Person("Manolo", "Carrasco", "Currante", 12, 1));
             addons.add(new Person("Henrik", "Paul", "Currito", 32, 6));
             addons.add(new Person("Paul", "Vaca", "Ganadero", 56, 66));
             addons.add(new Person("Biff", "Eeter", "Drinker", 34, 4));

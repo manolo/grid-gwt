@@ -343,7 +343,7 @@ public class Escalator extends Widget implements RequiresResize,
                 public native boolean isCancelable()
                 /*-{
                     return this.cancelable;
-                }-*/;                
+                }-*/;
             }
 
             private final Escalator escalator;
@@ -403,7 +403,7 @@ public class Escalator extends Widget implements RequiresResize,
                     scroll = vertical ? escalator.verticalScrollbar
                             : escalator.horizontalScrollbar;
                     scrollMax = scroll.getScrollSize() - scroll.getOffsetSize();
-                    delta = 0;                    
+                    delta = 0;
                 }
 
                 public void startTouch(CustomTouchEvent event) {
