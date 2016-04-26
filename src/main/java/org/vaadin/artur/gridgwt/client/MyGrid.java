@@ -70,16 +70,10 @@ public class MyGrid extends Grid<Person> {
             addons.add(new Person("Leo", "Tron", "Troco", 88, 5));
             addons.add(new Person("Peri", "Co", "Palotes", 22, 37));
         }
-        new Timer() {
-            public void run() {
-                setDataSource(new ListDataSource<Person>(addons));
-                if ($(".header-visible").isEmpty()) {
-                    setHeaderVisible(false);
-                }
-            }
-        }.schedule(1000);
-
-
+        setDataSource(new ListDataSource<Person>(addons));
+        if ($(".header-visible").isEmpty()) {
+           setHeaderVisible(false);
+        }
     }
     protected void onAttach() {
         super.onAttach();

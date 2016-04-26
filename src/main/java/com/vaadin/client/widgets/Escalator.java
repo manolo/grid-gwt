@@ -15,24 +15,7 @@
  */
 package com.vaadin.client.widgets;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import com.google.gwt.animation.client.Animation;
-import com.google.gwt.animation.client.AnimationScheduler;
-import com.google.gwt.animation.client.AnimationScheduler.AnimationCallback;
-import com.google.gwt.animation.client.AnimationScheduler.AnimationHandle;
 import com.google.gwt.core.client.Duration;
 import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.core.client.JsArray;
@@ -56,11 +39,13 @@ import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.logging.client.LogConfiguration;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.DOM;
+import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.RequiresResize;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.UIObject;
 import com.google.gwt.user.client.ui.Widget;
+
 import com.vaadin.client.BrowserInfo;
 import com.vaadin.client.DeferredWorker;
 import com.vaadin.client.Profiler;
@@ -93,6 +78,20 @@ import com.vaadin.shared.ui.grid.HeightMode;
 import com.vaadin.shared.ui.grid.Range;
 import com.vaadin.shared.ui.grid.ScrollDestination;
 import com.vaadin.shared.util.SharedUtil;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /*-
 
@@ -320,15 +319,9 @@ public class Escalator extends Widget implements RequiresResize,
              * {@link com.google.gwt.dom.client.NativeEvent NativeEvent} isn't
              * properly populated with the correct values.
              */
-            private final static class CustomTouchEvent extends
-                    NativeEvent {
+            private final static class CustomTouchEvent extends NativeEvent {
                 protected CustomTouchEvent() {
                 }
-
-                public native NativeEvent getNativeEvent()
-                /*-{
-                    return this;
-                }-*/;
 
                 public native int getPageX()
                 /*-{
@@ -402,21 +395,21 @@ public class Escalator extends Widget implements RequiresResize,
                     this.vertical = vertical;
                     scroll = vertical ? escalator.verticalScrollbar
                             : escalator.horizontalScrollbar;
-                    scrollMax = scroll.getScrollSize() - scroll.getOffsetSize();
-                    delta = 0;
                 }
 
                 public void startTouch(CustomTouchEvent event) {
                     speeds.clear();
                     prevPos = pagePosition(event);
                     prevTime = Duration.currentTimeMillis();
+                    scrollMax = scroll.getScrollSize() - scroll.getOffsetSize();
+                    delta = 0;
                 }
 
                 public void moveTouch(CustomTouchEvent event) {
                     double pagePosition = pagePosition(event);
                     run = false;
                     // skip grids without scroll
-                    if (pagePosition > -1) {
+                    if (scrollMax > 1) {
                         delta = prevPos - pagePosition;
                         double now = Duration.currentTimeMillis();
                         double ellapsed = now - prevTime;
@@ -425,7 +418,6 @@ public class Escalator extends Widget implements RequiresResize,
                         // storing again
                         if (speeds.size() > 0 && !validSpeed(speeds.get(0))) {
                             speeds.clear();
-                            run = true;
                         }
                         speeds.add(0, velocity);
                         prevTime = now;
@@ -433,6 +425,16 @@ public class Escalator extends Widget implements RequiresResize,
                         position = scroll.getScrollPos();
                     }
                 }
+
+                public void validate(Movement other) {
+                    // We don't move the scroll if no delta, scroll position
+                    // has reached the edge, or movement in one direction is
+                    // insignificant.
+                    run = delta != 0 && inScrollRange(position + delta)
+                            && Math.abs(other.delta / delta) < F_AXIS;
+                    if (!run) delta = 0;
+                }
+
                 public void endTouch(CustomTouchEvent event) {
                     // Compute average speed
                     velocity = 0;
@@ -449,17 +451,8 @@ public class Escalator extends Widget implements RequiresResize,
                     // Enable or disable inertia movement in this axis
                     run = validSpeed(velocity);
                     if (run) {
-                        event.getNativeEvent().preventDefault();
+                        event.preventDefault();
                     }
-                }
-
-                public void validate(Movement other) {
-                    // We don't move the scroll if no delta, scroll position
-                    // has reached the edge, or movement in one direction is
-                    // insignificant.
-                    run = delta != 0 && inScrollRange(position + delta) &&
-                            Math.abs(other.delta / delta) < F_AXIS;
-                    if (!run) delta = 0;
                 }
 
                 void stepAnimation(double progress) {
@@ -560,7 +553,7 @@ public class Escalator extends Widget implements RequiresResize,
                         yMov.scroll.setScrollPosByDelta(yMov.delta);
                     }
                     if (xMov.run || yMov.run) {
-                        // If we move the scroll we prevent default, otherwise
+                        // If we move the scroll prevent default, otherwise
                         // pass the control to the device.
                         event.preventDefault();
                     }
@@ -573,7 +566,7 @@ public class Escalator extends Widget implements RequiresResize,
                     yMov.endTouch(event);
                     xMov.validate(yMov);
                     yMov.validate(xMov);
-                    // Adjust duration so as longer movements take longer durations
+                    // Adjust duration so as longer movements take bigger duration
                     boolean vert = !xMov.run || yMov.run
                             && Math.abs(yMov.offset) > Math.abs(xMov.offset);
                     double delta = Math.abs((vert ? yMov : xMov).offset);
@@ -597,7 +590,7 @@ public class Escalator extends Widget implements RequiresResize,
 
         public static boolean eventOnBody(Escalator escalator, NativeEvent event) {
             Element e = event.getEventTarget().<Element>cast();
-            // Consider only events coming from the table body,
+            // Consider the event if it comes from an element in the body,
             // of from the main table (when setting position by code)
             return TableElement.is(e)
                     || escalator.bodyElem.isOrHasChild(e);
@@ -609,7 +602,7 @@ public class Escalator extends Widget implements RequiresResize,
 
             // Prevent scrolling on Headers/Footers
             if (!eventOnBody(escalator, event)) {
-                return;
+                 return;
             }
 
             boolean movex = !Double.isNaN(deltaX);
@@ -624,6 +617,11 @@ public class Escalator extends Widget implements RequiresResize,
                 }
                 escalator.body.domSorter.reschedule();
 
+                /*
+                 * TODO: only prevent if not scrolled to end/bottom. Or no? UX
+                 * team needs to decide. In touch devices movement is not
+                 * prevented when the edge is reached.
+                 */
                 final boolean warrantedYScroll = deltaY != 0
                         && escalator.verticalScrollbar.showsScrollHandle();
                 final boolean warrantedXScroll = deltaX != 0
@@ -1135,6 +1133,8 @@ public class Escalator extends Widget implements RequiresResize,
         private boolean defaultRowHeightShouldBeAutodetected = true;
 
         private double defaultRowHeight = INITIAL_DEFAULT_ROW_HEIGHT;
+
+        private boolean autodetectRowHeightLaterQueued = false;
 
         public AbstractRowContainer(
                 final TableSectionElement rowContainerElement) {
@@ -1931,41 +1931,49 @@ public class Escalator extends Widget implements RequiresResize,
         }
 
         public void autodetectRowHeightLater() {
-            Scheduler.get().scheduleFinally(new Scheduler.ScheduledCommand() {
-                @Override
-                public void execute() {
-                    if (defaultRowHeightShouldBeAutodetected && isAttached()) {
-                        autodetectRowHeightNow();
-                        defaultRowHeightShouldBeAutodetected = false;
+            if (!autodetectRowHeightLaterQueued) {
+                autodetectRowHeightLaterQueued = true;
+                Scheduler.get().scheduleFinally(new Scheduler.ScheduledCommand() {
+                    @Override
+                    public void execute() {
+                        if (isAttached()) {
+                            autodetectRowHeightLaterQueued = false;
+                            autodetectRowHeightNow();
+                        }
                     }
-                }
-            });
+                });
+            }
         }
 
+        private Element detectionTr, cellElem;
+
         public void autodetectRowHeightNow() {
-            if (!isAttached()) {
-                // Run again when attached
-                defaultRowHeightShouldBeAutodetected = true;
+            if (!defaultRowHeightShouldBeAutodetected || !isAttached()) {
                 return;
             }
 
-            final Element detectionTr = DOM.createTR();
-            detectionTr.setClassName(getStylePrimaryName() + "-row");
+            if (detectionTr == null) {
+                detectionTr = DOM.createTR();
+                detectionTr.setClassName(getStylePrimaryName() + "-row");
+                cellElem = DOM.createElement(getCellElementTagName());
+                cellElem.setClassName(getStylePrimaryName() + "-cell");
+                cellElem.setInnerText("Ij");
+                detectionTr.appendChild(cellElem);
+            }
 
-            final Element cellElem = DOM.createElement(getCellElementTagName());
-            cellElem.setClassName(getStylePrimaryName() + "-cell");
-            cellElem.setInnerText("Ij");
-
-            detectionTr.appendChild(cellElem);
             root.appendChild(detectionTr);
             double boundingHeight = WidgetUtil
                     .getRequiredHeightBoundingClientRectDouble(cellElem);
-            defaultRowHeight = Math.max(1.0d, boundingHeight);
             root.removeChild(detectionTr);
 
-            if (root.hasChildNodes()) {
-                reapplyDefaultRowHeights();
-                applyHeightByRows();
+            // Height lesser than 1px causes serious performance problems.
+            if (boundingHeight >= 1) {
+                defaultRowHeight = boundingHeight;
+                defaultRowHeightShouldBeAutodetected = false;
+                if (root.hasChildNodes()) {
+                    reapplyDefaultRowHeights();
+                    applyHeightByRows();
+                }
             }
         }
 
@@ -2389,63 +2397,23 @@ public class Escalator extends Widget implements RequiresResize,
             setTopRowLogicalIndex(topRowLogicalIndex + diff);
         }
 
-        private class DeferredDomSorter {
-            private static final int SORT_DELAY_MILLIS = 50;
-
-            // as it happens, 3 frames = 50ms @ 60fps.
-            private static final int REQUIRED_FRAMES_PASSED = 3;
-
-            private final AnimationCallback frameCounter = new AnimationCallback() {
-                @Override
-                public void execute(double timestamp) {
-                    framesPassed++;
-                    boolean domWasSorted = sortIfConditionsMet();
-                    if (!domWasSorted) {
-                        animationHandle = AnimationScheduler.get()
-                                .requestAnimationFrame(this);
-                    } else {
-                        waiting = false;
-                        bodyElem.removeClassName("scrolling");
-                    }
-                }
-            };
-
-            private int framesPassed;
-            private double startTime;
-            private AnimationHandle animationHandle;
-
-            /** <code>true</code> if a sort is scheduled */
-            public boolean waiting = false;
+        private class DeferredDomSorter extends Timer implements ScheduledCommand {
+            // 1000/50 (@50fps)
+            private static final int SORT_DELAY_MILLIS = 20;
 
             public void reschedule() {
-                waiting = true;
-                resetConditions();
-                animationHandle = AnimationScheduler.get()
-                        .requestAnimationFrame(frameCounter);
+                schedule(SORT_DELAY_MILLIS);
             }
 
-            private boolean sortIfConditionsMet() {
-                boolean enoughFramesHavePassed = framesPassed >= REQUIRED_FRAMES_PASSED;
-                boolean enoughTimeHasPassed = (Duration.currentTimeMillis() - startTime) >= SORT_DELAY_MILLIS;
-                boolean notTouchActivity = !scroller.touchHandlerBundle.touching;
-                boolean conditionsMet = enoughFramesHavePassed
-                        && enoughTimeHasPassed && notTouchActivity;
-
-                if (conditionsMet) {
-                    resetConditions();
-                    sortDomElements();
-                }
-
-                return conditionsMet;
+            @Override
+            public void run() {
+                Scheduler.get().scheduleFinally(this);
             }
 
-            private void resetConditions() {
-                if (animationHandle != null) {
-                    animationHandle.cancel();
-                    animationHandle = null;
-                }
-                startTime = Duration.currentTimeMillis();
-                framesPassed = 0;
+            @Override
+            public void execute() {
+                sortDomElements();
+                bodyElem.removeClassName("scrolling");
             }
         }
 
@@ -3157,6 +3125,15 @@ public class Escalator extends Widget implements RequiresResize,
                                 - allEscalatorRows.length();
                         moveAndUpdateEscalatorRows(allEscalatorRows, 0,
                                 logicalTargetIndex);
+
+                        /*
+                         * moveAndUpdateEscalatorRows recalculates the rows, but
+                         * logical top row index bookkeeping is handled in this
+                         * method.
+                         * 
+                         * TODO: Redesign how to keep it easy to track this.
+                         */
+                        updateTopRowLogicalIndex(-removedLogicalInside.length());
 
                         /*
                          * Scrolling the body to the correct location will be
@@ -6096,7 +6073,7 @@ public class Escalator extends Widget implements RequiresResize,
     public void scrollToRowAndSpacer(final int rowIndex,
             final ScrollDestination destination, final int padding)
             throws IllegalArgumentException {
-        Scheduler.get().scheduleFinally(new ScheduledCommand() {
+        Scheduler.get().scheduleDeferred(new ScheduledCommand() {
             @Override
             public void execute() {
                 validateScrollDestination(destination, padding);
@@ -6513,7 +6490,7 @@ public class Escalator extends Widget implements RequiresResize,
 
     @Override
     public boolean isWorkPending() {
-        return body.domSorter.waiting || verticalScrollbar.isWorkPending()
+        return body.domSorter.isRunning() || verticalScrollbar.isWorkPending()
                 || horizontalScrollbar.isWorkPending() || layoutIsScheduled;
     }
 
