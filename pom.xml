@@ -13,7 +13,7 @@
 
   <properties>
     <gwtVersion>2.8.0-SNAPSHOT</gwtVersion>
-    <!-- <gwtVersion>2.7.0</gwtVersion> -->
+    <gwtMavenVersion>2.8.0-SNAPSHOT</gwtMavenVersion>
     <vaadin.version>7.6.4</vaadin.version>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
@@ -35,6 +35,16 @@
       <id>google-snapshots</id>
       <url>https://oss.sonatype.org/content/repositories/google-snapshots/</url>
       <snapshots><enabled>true</enabled></snapshots>
+    </repository>
+    <repository>
+      <id>manolo-repo</id>
+      <url>https://github.com/manolo/gwt-snapshot/raw/master/</url>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
     </repository>
   </repositories>
 
@@ -96,7 +106,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>gwt-maven-plugin</artifactId>
-        <version>${gwtVersion}</version>
+        <version>${gwtMavenVersion}</version>
         <executions>
           <execution>
             <goals>
