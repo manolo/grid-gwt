@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.vaadin.client.widgets;
+package com.vaadin.client.widgets.grid;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -109,12 +109,7 @@ import com.vaadin.client.widget.grid.AutoScroller.AutoScrollerCallback;
 import com.vaadin.client.widget.grid.AutoScroller.ScrollAxis;
 import com.vaadin.client.widget.grid.CellReference;
 import com.vaadin.client.widget.grid.CellStyleGenerator;
-import com.vaadin.client.widget.grid.DataAvailableEvent;
-import com.vaadin.client.widget.grid.DataAvailableHandler;
-import com.vaadin.client.widget.grid.DefaultEditorEventHandler;
 import com.vaadin.client.widget.grid.DetailsGenerator;
-import com.vaadin.client.widget.grid.EditorHandler;
-import com.vaadin.client.widget.grid.EditorHandler.EditorRequest;
 import com.vaadin.client.widget.grid.EventCellReference;
 import com.vaadin.client.widget.grid.HeightAwareDetailsGenerator;
 import com.vaadin.client.widget.grid.RendererCellReference;
@@ -133,6 +128,10 @@ import com.vaadin.client.widget.grid.events.ColumnResizeEvent;
 import com.vaadin.client.widget.grid.events.ColumnResizeHandler;
 import com.vaadin.client.widget.grid.events.ColumnVisibilityChangeEvent;
 import com.vaadin.client.widget.grid.events.ColumnVisibilityChangeHandler;
+import com.vaadin.client.widget.grid.events.DataAvailableEvent;
+import com.vaadin.client.widget.grid.events.DataAvailableHandler;
+import com.vaadin.client.widget.grid.events.DefaultEditorEventHandler;
+import com.vaadin.client.widget.grid.events.EditorHandler;
 import com.vaadin.client.widget.grid.events.FooterClickHandler;
 import com.vaadin.client.widget.grid.events.FooterDoubleClickHandler;
 import com.vaadin.client.widget.grid.events.FooterKeyDownHandler;
@@ -152,6 +151,7 @@ import com.vaadin.client.widget.grid.events.ScrollEvent;
 import com.vaadin.client.widget.grid.events.ScrollHandler;
 import com.vaadin.client.widget.grid.events.SelectAllEvent;
 import com.vaadin.client.widget.grid.events.SelectAllHandler;
+import com.vaadin.client.widget.grid.events.EditorHandler.EditorRequest;
 import com.vaadin.client.widget.grid.selection.HasSelectionHandlers;
 import com.vaadin.client.widget.grid.selection.MultiSelectionRenderer;
 import com.vaadin.client.widget.grid.selection.SelectionEvent;
@@ -166,12 +166,13 @@ import com.vaadin.client.widget.grid.sort.Sort;
 import com.vaadin.client.widget.grid.sort.SortEvent;
 import com.vaadin.client.widget.grid.sort.SortHandler;
 import com.vaadin.client.widget.grid.sort.SortOrder;
-import com.vaadin.client.widgets.Grid.Editor.State;
-import com.vaadin.client.widgets.Grid.StaticSection.StaticCell;
-import com.vaadin.client.widgets.Grid.StaticSection.StaticRow;
+import com.vaadin.client.widgets.Overlay;
 import com.vaadin.client.widgets.escalator.AbstractRowContainer;
 import com.vaadin.client.widgets.escalator.Escalator;
 import com.vaadin.client.widgets.escalator.SubPartArguments;
+import com.vaadin.client.widgets.grid.Grid.Editor.State;
+import com.vaadin.client.widgets.grid.Grid.StaticSection.StaticCell;
+import com.vaadin.client.widgets.grid.Grid.StaticSection.StaticRow;
 import com.vaadin.shared.data.sort.SortDirection;
 import com.vaadin.shared.ui.grid.GridConstants;
 import com.vaadin.shared.ui.grid.GridConstants.Section;

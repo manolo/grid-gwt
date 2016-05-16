@@ -9,7 +9,7 @@
   <source path='client'/>
 
   <!--  Use Vaadin widgets -->
-  <inherits name='com.vaadin.Vaadin'/>
+  <inherits name='com.vaadin.VaadinMin'/>
 
   <!-- Inherit to use the default Valo theme -->
   <inherits name='com.vaadin.themes.Valo'/>

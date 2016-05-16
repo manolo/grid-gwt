@@ -1,6 +1,5 @@
 package com.vaadin.client.widgets.escalator;
 
-import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.Style;
 import com.google.gwt.dom.client.Style.Display;
@@ -12,76 +11,80 @@ import com.vaadin.shared.ui.grid.Range;
 import com.vaadin.shared.ui.grid.ScrollDestination;
 
 /** An inner class that handles all logic related to scrolling. */
-class Scroller extends JsniWorkaround {
+class Scroller {
+    
+    
     private final Escalator escalator;
     private double lastScrollTop = 0;
     double lastScrollLeft = 0;
 
+    protected final JsniHandler scrollListenerFunction;
+    protected final JsniHandler mousewheelListenerFunction;
+    protected final JsniHandler touchStartFunction;
+    protected final JsniHandler touchMoveFunction;
+    protected final JsniHandler touchEndFunction;
+    protected final TouchHandlerBundle touchHandlerBundle;
+
     public Scroller(Escalator escalator) {
-        super(escalator);
         this.escalator = escalator;
+        scrollListenerFunction = e -> {
+            if (e.target == (Object)escalator.verticalScrollbar.getElement()) {
+                escalator.verticalScrollbar.updateScrollPosFromDom();
+            } else if (e.target == (Object)escalator.horizontalScrollbar.getElement()) {
+                escalator.horizontalScrollbar.updateScrollPosFromDom();
+            }
+        };
+        mousewheelListenerFunction = e -> {
+            double deltaX = e.deltaX != 0 ? e.deltaX : -0.5 * e.wheelDeltaX;
+            double deltaY = e.deltaY != 0 ? e.deltaY : -0.5 * e.wheelDeltaY;
+            if (e.deltaMode == 1) {
+                deltaY *= escalator.body.getDefaultRowHeight();
+            }
+            JsniUtil.moveScrollFromEvent(escalator, deltaX, deltaY, e);
+        };
+        
+        touchHandlerBundle = new TouchHandlerBundle(escalator);
+        
+        touchStartFunction = e -> {
+            touchHandlerBundle.touchStart(e);
+        };
+        touchMoveFunction = e -> {
+            touchHandlerBundle.touchMove(e);
+        };
+        touchEndFunction = e -> {
+            touchHandlerBundle.touchEnd(e);
+        };
+    }
+    
+    public void onLoad() {
+        addListener(escalator.horizontalScrollbar.getElement(), "scroll", scrollListenerFunction);
+        addListener(escalator.verticalScrollbar.getElement(), "scroll", scrollListenerFunction);
+        addListener(escalator.getElement(), "mousewheel", mousewheelListenerFunction);
+        addListener(escalator.getElement(), "touchstart", touchStartFunction);
+        addListener(escalator.getElement(), "touchmove", touchMoveFunction);
+        addListener(escalator.getElement(), "touchend", touchEndFunction);
+        addListener(escalator.getElement(), "touchcancel", touchEndFunction);
+    }
+    
+    public void onUnload() {
+        removeListener(escalator.verticalScrollbar.getElement(), "scroll", scrollListenerFunction);
+        removeListener(escalator.horizontalScrollbar.getElement(), "scroll", scrollListenerFunction);
+        removeListener(escalator.getElement(), "mousewheel", mousewheelListenerFunction);
+        removeListener(escalator.getElement(), "touchstart", touchStartFunction);
+        removeListener(escalator.getElement(), "touchmove", touchMoveFunction);
+        removeListener(escalator.getElement(), "touchend", touchEndFunction);
+        removeListener(escalator.getElement(), "touchcancel", touchEndFunction);
+    }
+    
+    private void addListener(Element e, String name, Object handler) {
+        ((JsniElement)(Object)e).addEventListener(name, (JsniHandler)handler);
+    }
+    
+    private void removeListener(Element e, String name, Object handler) {
+        ((JsniElement)(Object)e).removeEventListener(name, (JsniHandler)handler);
     }
 
-    @Override
-    protected native JavaScriptObject createScrollListenerFunction(
-            Escalator esc)
-    /*-{
-        var vScroll = esc.@com.vaadin.client.widgets.Escalator::verticalScrollbar;
-        var vScrollElem = vScroll.@com.vaadin.client.widget.escalator.ScrollbarBundle::getElement()();
-
-        var hScroll = esc.@com.vaadin.client.widgets.Escalator::horizontalScrollbar;
-        var hScrollElem = hScroll.@com.vaadin.client.widget.escalator.ScrollbarBundle::getElement()();
-
-        return $entry(function(e) {
-            var target = e.target || e.srcElement; // IE8 uses e.scrElement
-
-            // in case the scroll event was native (i.e. scrollbars were dragged, or
-            // the scrollTop/Left was manually modified), the bundles have old cache
-            // values. We need to make sure that the caches are kept up to date.
-            if (target === vScrollElem) {
-                vScroll.@com.vaadin.client.widget.escalator.ScrollbarBundle::updateScrollPosFromDom()();
-            } else if (target === hScrollElem) {
-                hScroll.@com.vaadin.client.widget.escalator.ScrollbarBundle::updateScrollPosFromDom()();
-            } else {
-                $wnd.console.error("unexpected scroll target: "+target);
-            }
-        });
-    }-*/;
-
-    @Override
-    protected native JavaScriptObject createMousewheelListenerFunction(
-            Escalator esc)
-    /*-{
-        return $entry(function(e) {
-            var deltaX = e.deltaX ? e.deltaX : -0.5*e.wheelDeltaX;
-            var deltaY = e.deltaY ? e.deltaY : -0.5*e.wheelDeltaY;
-
-            // Delta mode 0 is in pixels; we don't need to do anything...
-
-            // A delta mode of 1 means we're scrolling by lines instead of pixels
-            // We need to scale the number of lines by the default line height
-            if(e.deltaMode === 1) {
-                var brc = esc.@com.vaadin.client.widgets.escalator.Escalator::body;
-                deltaY *= brc.@com.vaadin.client.widgets.escalator.AbstractRowContainer::getDefaultRowHeight()();
-            }
-
-            // Other delta modes aren't supported
-            if((e.deltaMode !== undefined) && (e.deltaMode >= 2 || e.deltaMode < 0)) {
-                var msg = "Unsupported wheel delta mode \"" + e.deltaMode + "\"";
-
-                // Print warning message
-                esc.@com.vaadin.client.widgets.Escalator::logWarning(*)(msg);
-            }
-
-            // IE8 has only delta y
-            if (isNaN(deltaY)) {
-                deltaY = -0.5*e.wheelDelta;
-            }
-
-            @com.vaadin.client.widgets.escalator.JsniUtil::moveScrollFromEvent(*)(esc, deltaX, deltaY, e);
-        });
-    }-*/;
-
+    
     /**
      * Recalculates the virtual viewport represented by the scrollbars, so
      * that the sizes of the scroll handles appear correct in the browser
@@ -237,120 +240,6 @@ class Scroller extends JsniWorkaround {
          * those numbers and only updating the positions after that.
          */
     }
-
-    public native void attachScrollListener(Element element)
-    /*
-     * Attaching events with JSNI instead of the GWT event mechanism because
-     * GWT didn't provide enough details in events, or triggering the event
-     * handlers with GWT bindings was unsuccessful. Maybe, with more time
-     * and skill, it could be done with better success. JavaScript overlay
-     * types might work. This might also get rid of the JsniWorkaround
-     * class.
-     */
-    /*-{
-         if (element.addEventListener) {
-             element.addEventListener("scroll", this.@com.vaadin.client.widgets.JsniWorkaround::scrollListenerFunction);
-         } else {
-             element.attachEvent("onscroll", this.@com.vaadin.client.widgets.JsniWorkaround::scrollListenerFunction);
-         }
-    }-*/;
-
-    public native void detachScrollListener(Element element)
-    /*
-     * Attaching events with JSNI instead of the GWT event mechanism because
-     * GWT didn't provide enough details in events, or triggering the event
-     * handlers with GWT bindings was unsuccessful. Maybe, with more time
-     * and skill, it could be done with better success. JavaScript overlay
-     * types might work. This might also get rid of the JsniWorkaround
-     * class.
-     */
-    /*-{
-        if (element.addEventListener) {
-            element.removeEventListener("scroll", this.@com.vaadin.client.widgets.JsniWorkaround::scrollListenerFunction);
-        } else {
-            element.detachEvent("onscroll", this.@com.vaadin.client.widgets.JsniWorkaround::scrollListenerFunction);
-        }
-    }-*/;
-
-    public native void attachMousewheelListener(Element element)
-    /*
-     * Attaching events with JSNI instead of the GWT event mechanism because
-     * GWT didn't provide enough details in events, or triggering the event
-     * handlers with GWT bindings was unsuccessful. Maybe, with more time
-     * and skill, it could be done with better success. JavaScript overlay
-     * types might work. This might also get rid of the JsniWorkaround
-     * class.
-     */
-    /*-{
-        if (element.addEventListener) {
-            // firefox likes "wheel", while others use "mousewheel"
-            var eventName = 'onmousewheel' in element ? 'mousewheel' : 'wheel';
-            element.addEventListener(eventName, this.@com.vaadin.client.widgets.JsniWorkaround::mousewheelListenerFunction);
-        } else {
-            // IE8
-            element.attachEvent("onmousewheel", this.@com.vaadin.client.widgets.JsniWorkaround::mousewheelListenerFunction);
-        }
-    }-*/;
-
-    public native void detachMousewheelListener(Element element)
-    /*
-     * Detaching events with JSNI instead of the GWT event mechanism because
-     * GWT didn't provide enough details in events, or triggering the event
-     * handlers with GWT bindings was unsuccessful. Maybe, with more time
-     * and skill, it could be done with better success. JavaScript overlay
-     * types might work. This might also get rid of the JsniWorkaround
-     * class.
-     */
-    /*-{
-        if (element.addEventListener) {
-            // firefox likes "wheel", while others use "mousewheel"
-            var eventName = element.onwheel===undefined?"mousewheel":"wheel";
-            element.removeEventListener(eventName, this.@com.vaadin.client.widgets.JsniWorkaround::mousewheelListenerFunction);
-        } else {
-            // IE8
-            element.detachEvent("onmousewheel", this.@com.vaadin.client.widgets.JsniWorkaround::mousewheelListenerFunction);
-        }
-    }-*/;
-
-    public native void attachTouchListeners(Element element)
-    /*
-     * Detaching events with JSNI instead of the GWT event mechanism because
-     * GWT didn't provide enough details in events, or triggering the event
-     * handlers with GWT bindings was unsuccessful. Maybe, with more time
-     * and skill, it could be done with better success. JavaScript overlay
-     * types might work. This might also get rid of the JsniWorkaround
-     * class.
-     */
-    /*-{
-        if (element.addEventListener) {
-            element.addEventListener("touchstart", this.@com.vaadin.client.widgets.JsniWorkaround::touchStartFunction);
-            element.addEventListener("touchmove", this.@com.vaadin.client.widgets.JsniWorkaround::touchMoveFunction);
-            element.addEventListener("touchend", this.@com.vaadin.client.widgets.JsniWorkaround::touchEndFunction);
-            element.addEventListener("touchcancel", this.@com.vaadin.client.widgets.JsniWorkaround::touchEndFunction);
-        } else {
-            // this would be IE8, but we don't support it with touch
-        }
-    }-*/;
-
-    public native void detachTouchListeners(Element element)
-    /*
-     * Detaching events with JSNI instead of the GWT event mechanism because
-     * GWT didn't provide enough details in events, or triggering the event
-     * handlers with GWT bindings was unsuccessful. Maybe, with more time
-     * and skill, it could be done with better success. JavaScript overlay
-     * types might work. This might also get rid of the JsniWorkaround
-     * class.
-     */
-    /*-{
-        if (element.removeEventListener) {
-            element.removeEventListener("touchstart", this.@com.vaadin.client.widgets.JsniWorkaround::touchStartFunction);
-            element.removeEventListener("touchmove", this.@com.vaadin.client.widgets.JsniWorkaround::touchMoveFunction);
-            element.removeEventListener("touchend", this.@com.vaadin.client.widgets.JsniWorkaround::touchEndFunction);
-            element.removeEventListener("touchcancel", this.@com.vaadin.client.widgets.JsniWorkaround::touchEndFunction);
-        } else {
-            // this would be IE8, but we don't support it with touch
-        }
-    }-*/;
 
     public void scrollToColumn(final int columnIndex,
             final ScrollDestination destination, final int padding) {

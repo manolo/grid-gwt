@@ -1,8 +1,6 @@
 package com.vaadin.client.widgets.escalator;
 
 import com.google.gwt.dom.client.Element;
-import com.google.gwt.dom.client.NativeEvent;
-import com.google.gwt.dom.client.TableElement;
 
 /**
  * A utility class that contains utility methods that are usually called
@@ -12,17 +10,14 @@ import com.google.gwt.dom.client.TableElement;
  * as much as feasible.
  */
 class JsniUtil {
-    public static boolean eventOnBody(Escalator escalator, NativeEvent event) {
-        Element e = event.getEventTarget().<Element>cast();
-        // Consider the event if it comes from an element in the body,
-        // of from the main table (when setting position by code)
-        return TableElement.is(e)
-                || escalator.bodyElem.isOrHasChild(e);
+    
+    public static boolean eventOnBody(Escalator escalator, JsniEvent ev) {
+        return ((JsniElement)(Object)escalator.bodyElem).contains(ev.target);
     }
 
     public static void moveScrollFromEvent(final Escalator escalator,
             final double deltaX, final double deltaY,
-            final NativeEvent event) {
+            final JsniEvent event) {
 
         // Prevent scrolling on Headers/Footers
         if (!eventOnBody(escalator, event)) {
@@ -41,11 +36,6 @@ class JsniUtil {
             }
             escalator.body.domSorter.reschedule();
 
-            /*
-             * TODO: only prevent if not scrolled to end/bottom. Or no? UX
-             * team needs to decide. In touch devices movement is not
-             * prevented when the edge is reached.
-             */
             final boolean warrantedYScroll = deltaY != 0
                     && escalator.verticalScrollbar.showsScrollHandle();
             final boolean warrantedXScroll = deltaX != 0
@@ -58,6 +48,10 @@ class JsniUtil {
     
     public static native  void setStylePrimaryName(Element elem, String style) /*-{
         @com.google.gwt.user.client.ui.UIObject::setStylePrimaryName(Lcom/google/gwt/dom/client/Element;Ljava/lang/String;)(elem, style);
-   }-*/;
+    }-*/;
+    
+    public static native void debugger() /*-{
+        debugger;
+    }-*/;
     
 }

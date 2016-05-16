@@ -2,10 +2,6 @@ package com.vaadin.client.widgets.escalator;
 
 import com.google.gwt.animation.client.Animation;
 import com.google.gwt.core.client.Duration;
-import com.google.gwt.core.client.JavaScriptObject;
-import com.google.gwt.core.client.JsArray;
-import com.google.gwt.dom.client.NativeEvent;
-import com.google.gwt.dom.client.Touch;
 import com.google.gwt.user.client.Window;
 
 import com.vaadin.client.widget.escalator.ScrollbarBundle;
@@ -15,71 +11,11 @@ import java.util.List;
 
 public class TouchHandlerBundle {
 
-    /**
-     * A <a href=
-     * "http://www.gwtproject.org/doc/latest/DevGuideCodingBasicsOverlay.html"
-     * >JavaScriptObject overlay</a> for the <a
-     * href="http://www.w3.org/TR/touch-events/">JavaScript
-     * TouchEvent</a> object.
-     * <p>
-     * This needs to be used in the touch event handlers, since GWT's
-     * {@link com.google.gwt.event.dom.client.TouchEvent TouchEvent}
-     * can't be cast from the JSNI call, and the
-     * {@link com.google.gwt.dom.client.NativeEvent NativeEvent} isn't
-     * properly populated with the correct values.
-     */
-    final static class CustomTouchEvent extends NativeEvent {
-        protected CustomTouchEvent() {
-        }
-
-        public native int getPageX()
-        /*-{
-            return this.targetTouches[0].pageX;
-        }-*/;
-
-        public native int getPageY()
-        /*-{
-            return this.targetTouches[0].pageY;
-        }-*/;
-
-        public native boolean isCancelable()
-        /*-{
-            return this.cancelable;
-        }-*/;
-    }
-
     private final Escalator escalator;
 
     public TouchHandlerBundle(final Escalator escalator) {
         this.escalator = escalator;
     }
-
-    public native JavaScriptObject getTouchStartHandler()
-    /*-{
-        // we need to store "this", since it won't be preserved on call.
-        var self = this;
-        return $entry(function (e) {
-            self.@com.vaadin.client.widgets.escalator.TouchHandlerBundle::touchStart(*)(e);
-        });
-    }-*/;
-
-    public native JavaScriptObject getTouchMoveHandler()
-    /*-{
-        // we need to store "this", since it won't be preserved on call.
-        var self = this;
-        return $entry(function (e) {
-            self.@com.vaadin.client.widgets.escalator.TouchHandlerBundle::touchMove(*)(e);
-        });
-    }-*/;
-
-    public native JavaScriptObject getTouchEndHandler()
-    /*-{
-        // we need to store "this", since it won't be preserved on call.
-        var self = this;
-        return $entry(function (e) {
-            self.@com.vaadin.client.widgets.escalator.TouchHandlerBundle::touchEnd(*)(e);
-        });
-    }-*/;
 
     // Duration of the inertial scrolling simulation. Devices with
     // larger screens take longer durations.
@@ -89,8 +25,7 @@ public class TouchHandlerBundle {
     private boolean touching = false;
     // Two movement objects for storing status and processing touches
     private Movement yMov, xMov;
-    final double MIN_VEL = 0.6, MAX_VEL = 4, F_VEL = 1500, F_ACC = 0.7,
-            F_AXIS = 1;
+    final double MIN_VEL = 0.6, MAX_VEL = 4, F_VEL = 1500, F_ACC = 0.7, F_AXIS = 1;
 
     // The object to deal with one direction scrolling
     private class Movement {
@@ -106,7 +41,7 @@ public class TouchHandlerBundle {
                     : escalator.horizontalScrollbar;
         }
 
-        public void startTouch(TouchHandlerBundle.CustomTouchEvent event) {
+        public void startTouch(JsniEvent event) {
             speeds.clear();
             prevPos = pagePosition(event);
             prevTime = Duration.currentTimeMillis();
@@ -114,7 +49,7 @@ public class TouchHandlerBundle {
             delta = 0;
         }
 
-        public void moveTouch(TouchHandlerBundle.CustomTouchEvent event) {
+        public void moveTouch(JsniEvent event) {
             double pagePosition = pagePosition(event);
             run = false;
             // skip grids without scroll
@@ -144,7 +79,7 @@ public class TouchHandlerBundle {
             if (!run) delta = 0;
         }
 
-        public void endTouch(TouchHandlerBundle.CustomTouchEvent event) {
+        public void endTouch(JsniEvent event) {
             // Compute average speed
             velocity = 0;
             for (double s : speeds) {
@@ -176,9 +111,8 @@ public class TouchHandlerBundle {
             return p > 0 && p < scrollMax;
         }
 
-        int pagePosition(TouchHandlerBundle.CustomTouchEvent event) {
-            JsArray<Touch> a = event.getTouches();
-            return vertical ? a.get(0).getPageY() : a.get(0).getPageX();
+        double pagePosition(JsniEvent event) {
+            return vertical ? event.touches[0].pageY : event.touches[0].pageX;
         }
 
         boolean validSpeed(double speed) {
@@ -220,10 +154,11 @@ public class TouchHandlerBundle {
         };
     };
 
-    public void touchStart(final TouchHandlerBundle.CustomTouchEvent event) {
+    public void touchStart(final JsniEvent event) {
+        
         // Consider only one-finger gestures over the body.
         if (JsniUtil.eventOnBody(escalator, event)
-                && event.getTouches().length() == 1) {
+                && event.touches.length == 1) {
             if (yMov == null) {
                 yMov = new Movement(true);
                 xMov = new Movement(false);
@@ -249,7 +184,7 @@ public class TouchHandlerBundle {
         }
     }
 
-    public void touchMove(final TouchHandlerBundle.CustomTouchEvent event) {
+    public void touchMove(JsniEvent event) {
         if (touching && event.isCancelable()) {
             xMov.moveTouch(event);
             yMov.moveTouch(event);
@@ -269,7 +204,7 @@ public class TouchHandlerBundle {
         }
     }
 
-    public void touchEnd(final TouchHandlerBundle.CustomTouchEvent event) {
+    public void touchEnd(JsniEvent event) {
         if (touching) {
             xMov.endTouch(event);
             yMov.endTouch(event);

@@ -550,20 +550,12 @@ public class Escalator extends Widget implements RequiresResize,
 
         verticalScrollbar.onLoad();
         horizontalScrollbar.onLoad();
-
-        scroller.attachScrollListener(verticalScrollbar.getElement());
-        scroller.attachScrollListener(horizontalScrollbar.getElement());
-        scroller.attachMousewheelListener(getElement());
-        scroller.attachTouchListeners(getElement());
+        scroller.onLoad();
     }
 
     @Override
     protected void onUnload() {
-
-        scroller.detachScrollListener(verticalScrollbar.getElement());
-        scroller.detachScrollListener(horizontalScrollbar.getElement());
-        scroller.detachMousewheelListener(getElement());
-        scroller.detachTouchListeners(getElement());
+        scroller.onUnload();
 
         /*
          * We can call paintRemoveRows here, because static ranges are simple to

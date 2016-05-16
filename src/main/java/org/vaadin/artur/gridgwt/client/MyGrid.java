@@ -1,17 +1,20 @@
 package org.vaadin.artur.gridgwt.client;
 
-import static com.google.gwt.query.client.GQuery.$;
-import static com.google.gwt.query.client.GQuery.console;
+import com.google.gwt.dom.client.Element;
+import com.google.gwt.user.client.Window;
+
+import com.vaadin.client.widget.grid.datasources.ListDataSource;
+import com.vaadin.client.widgets.grid.Grid;
 
 import java.util.ArrayList;
-import java.util.Random;
 
-import com.google.gwt.user.client.Timer;
-import com.google.gwt.user.client.Window;
-import com.vaadin.client.widget.grid.datasources.ListDataSource;
-import com.vaadin.client.widgets.Grid;
+import jsinterop.annotations.JsMethod;
 
 public class MyGrid extends Grid<Person> {
+    
+    @JsMethod(namespace = "document")
+    public native static Element querySelector(String selector); 
+    
     public MyGrid() {
         super();
         setSelectionMode(SelectionMode.SINGLE);
@@ -71,8 +74,9 @@ public class MyGrid extends Grid<Person> {
             addons.add(new Person("Peri", "Co", "Palotes", 22, 37));
         }
         setDataSource(new ListDataSource<Person>(addons));
-        if ($(".header-visible").isEmpty()) {
-           setHeaderVisible(false);
+        
+        if (querySelector(".header-visible") == null) {
+            setHeaderVisible(false);
         }
     }
     protected void onAttach() {

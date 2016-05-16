@@ -48,6 +48,23 @@
     </repository>
   </repositories>
 
+  <profiles>
+    <profile>
+      <id>soyc</id>
+      <properties>
+        <gwt.closure>false</gwt.closure>
+        <gwt.report>true</gwt.report>
+      </properties>
+    </profile>
+    <profile>
+      <id>pretty</id>
+      <properties>
+        <gwt.outputstyle>PRETTY</gwt.outputstyle>
+        <gwt.closure>false</gwt.closure>
+      </properties>
+    </profile>
+  </profiles>
+
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -76,12 +93,12 @@
       <artifactId>gwt-dev</artifactId>
       <scope>provided</scope>
     </dependency>
-    <dependency>
-      <groupId>com.vaadin</groupId>
-      <artifactId>vaadin-widgets</artifactId>
-      <version>${vaadin.version}</version>
-      <scope>provided</scope>
-    </dependency>
+<!--     <dependency> -->
+<!--       <groupId>com.vaadin</groupId> -->
+<!--       <artifactId>vaadin-widgets</artifactId> -->
+<!--       <version>${vaadin.version}</version> -->
+<!--       <scope>provided</scope> -->
+<!--     </dependency> -->
     <dependency>
         <groupId>com.googlecode.gwtquery</groupId>
         <artifactId>gwtquery</artifactId>
@@ -119,12 +136,15 @@
         <!-- Plugin configuration. There are many available options, see
           gwt-maven-plugin documentation at codehaus.org -->
         <configuration>
+          <style>${gwt.outputstyle}</style>
+          <gwtVersion>${gwtversion}</gwtVersion>
+          <compileReport>${gwt.report}</compileReport>
+          <compileMetrics>${gwt.report}</compileMetrics>
           <copyWebapp>true</copyWebapp>
           <runTarget>index.html</runTarget>
           <modules>
             <module>org.vaadin.artur.gridgwt.GridApp</module>
           </modules>
-          <!-- <style>PRETTY</style> -->
           <generateJsInteropExports>true</generateJsInteropExports>
         </configuration>
       </plugin>
